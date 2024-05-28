@@ -1,0 +1,30 @@
+{
+  "name": "sol_newtoken_bot",
+  "version": "1.0.0",
+  "description": "solana监控新币、交易、监控交易池",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yuanshuo1022/solana_newtoken_bot.git"
+  },
+  "keywords": [
+    "solana",
+    "swap",
+    "newtoken"
+  ],
+  "author": "yuanshuo",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/yuanshuo1022/solana_newtoken_bot/issues"
+  },
+  "homepage": "https://github.com/yuanshuo1022/solana_newtoken_bot#readme",
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "swagger-jsdoc": "^6.2.8",
+    "swagger-ui-express": "^5.0.0"
+  }
+}

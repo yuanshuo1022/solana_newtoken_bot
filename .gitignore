@@ -1,0 +1,63 @@
+# Node.js 依赖包目录
+node_modules/
+
+#历史代码文件
+.history
+
+# 日志文件
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# 环境变量文件
+.env
+
+# 临时文件和目录
+tmp/
+temp/
+
+# 操作系统生成的文件
+.DS_Store
+Thumbs.db
+
+# 编辑器/IDE 生成的文件
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# 打包文件
+dist/
+build/
+
+# 缓存文件
+.cache/
+.nyc_output/
+
+# 本地测试文件
+coverage/
+
+# 编译输出文件
+*.out
+*.o
+
+# 私密文件
+secret.json
+
+# 特定平台文件
+*.swp
+*.bak
+*.pid
+*.seed
+
+# 锁文件
+package-lock.json
+yarn.lock
+
+# TypeScript 构建文件
+*.tsbuildinfo
+
+# bytenode 编译文件
+*.jsc
