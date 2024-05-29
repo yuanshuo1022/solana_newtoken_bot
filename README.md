@@ -28,7 +28,7 @@ solana_newtoken_bot
 │     └─ sol_api.js //solana api
 ├─ config
 │  ├─ config.js
-│  └─ config.prod.js
+│  └─ config.prod.js //生产环境
 ├─ public
 └─ db
    └─ db.js

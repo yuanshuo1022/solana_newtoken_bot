@@ -1,9 +1,9 @@
 const spl_token = require('@solana/spl-token')
 const bs58 = require('bs58');
-const { Keypair, PublicKey, sendAndConfirmTransaction } = require('@solana/web3.js');
+const { Keypair, PublicKey} = require('@solana/web3.js');
 const { fetchWithRetry } = require('../../common/common')
 const { Wallet } = require('@project-serum/anchor');
-
+const { programs } = require("@metaplex/js");
 
 /**
 * 连接钱包
@@ -42,7 +42,8 @@ async function getTokenMetadataDecimals(connection, tokenMintAddress) {
  */
 async function getTokenMetadataInfo(connection, tokenMintAddress) {
     try {
-        const res = await spl_token.getMint(connection, tokenMintAddress, "confirmed")
+        const tokenMintAddressPublicKey = new PublicKey(tokenMintAddress)
+        const res = await spl_token.getMint(connection, tokenMintAddressPublicKey, "confirmed")
         const data = {
             mintAuthority: res.mintAuthority,
             supply: res.supply.toString(),
@@ -130,12 +131,49 @@ async function findUiTokenAccount(TokenBalances) {
     }
 
 }
-
+/**
+* 通过交易hash获取账户代币交易的余额
+* @param {string} owner - 账户地址
+* @param {string} mint  - 代币地址
+* @param {json} TokenBalances 解析交易hash返回的postTokenBalnace中的json值
+* @returns {json} uiTokenAmount 账户代币的余额
+*/
+async function findUiTokenAmount(owner, mint, TokenBalances) {
+    for (const balance of TokenBalances) {
+        if (balance.owner === owner && balance.mint === mint) {
+            return balance.uiTokenAmount;
+        }
+    }
+    return null; // 如果没有找到匹配的对象，返回 null
+}
+/**
+* 获取账户交易的余额
+* @param {Connection} connection 全节点JSON RPC端点的连接
+* @param {string} accountAddress - 账户地址
+* @param {string} tokenAddress  - 代币地址
+* @returns {json} uiTokenAmount 账户代币的余额
+*/
+async function getTokenBalance(connection,accountAddress,tokenAddress) {
+   
+    const accountPublicKey = new PublicKey(accountAddress);
+    const tokenMintAddress = new PublicKey(tokenAddress)
+    try {
+        // 获取账户余额信息
+        const tokenAccount = await connection.getTokenAccountsByOwner(accountPublicKey, { mint: tokenMintAddress });
+        let TokenBalance = await connection.getTokenAccountBalance(tokenAccount.value[0].pubkey)
+        // 返回余额
+        return TokenBalance;
+    } catch (error) {
+        console.error('Error fetching token balance:', error);
+    }
+}
 
 module.exports = {
     getTokenMetadataDecimals,
     getTokenMetadataInfo,
     getTokenMetadata,
     findUiTokenAccount,
-    connectWallt
+    connectWallt,
+    getTokenBalance,
+    findUiTokenAmount
 }

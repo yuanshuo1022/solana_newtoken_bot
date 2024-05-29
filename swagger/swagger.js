@@ -1,31 +1,41 @@
-// swagger.js
+// swagger在线网站：https://editor.swagger.io/#
 
-const swaggerJSDoc = require('swagger-jsdoc');
-const swaggerUi = require('swagger-ui-express');
+const swaggerJSDoc = require('swagger-jsdoc')
+const swaggerUi = require('swagger-ui-express')
+const path = require('path')
 
-// Swagger 定义
-const swaggerDefinition = {
-  openapi: '3.0.0',
-  info: {
-    title: 'solana打新后端程序',
-    version: '1.0.0',
-    description: 'sol监控新币、swap等API',
-  },
-  servers: [
-    {
-      url: 'http://localhost:18001', // API 服务器地址
-      description: '开发服务器',
-    },
-  ],
-};
-
-// Swagger 配置选项
+const swaggerInit = (app) => {
+  //options是swaggerJSDoc的配置项
+  const swaggerDefinition  = {
+    openapi: '3.0.0',
+      info: {
+        title: '代币交易、新币监控api文档',
+        version: '1.0.0',
+        description: 'solana等api文档',
+      },
+      servers: [
+        {
+          url: 'http://localhost:18001', // API 服务器地址
+          description: '开发服务器',
+        },
+      ],
+  }
+  // Options for the swagger docs
 const options = {
   swaggerDefinition,
-  apis: ['../api/**/*.js'], // 写你 API 路由文件的路径
+  // Path to the API docs
+  apis: ['./api/sol/*.js'], 
 };
+  const swaggerSpec = swaggerJSDoc(options)
 
-// 初始化 swagger-jsdoc
-const swaggerSpec = swaggerJSDoc(options);
+  // 可以访问 xxx/swagger.json 看到生成的swaggerJSDoc
+  app.get('/swagger.json', function (req, res) {
+    res.setHeader('Content-Type', 'application/json')
+    res.send(swaggerSpec)
+  })
 
-module.exports = swaggerSpec;
+  // 可以访问 xxx/docs 看到生成的swagger接口文档
+  app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec))
+}
+
+module.exports = swaggerInit
