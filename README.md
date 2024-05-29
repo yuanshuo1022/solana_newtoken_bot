@@ -34,3 +34,16 @@ solana_newtoken_bot
    └─ db.js
 
 ```
+
+# 运行版本(参考)
+```
+node V18.17.0
+npm  V10.3.0
+```
+# 运行
+```
+1、将envtest文件修改为.env
+2、配置相关参数
+3、npm install #安装依赖
+4、node app.js #启动
+```

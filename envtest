@@ -1,0 +1,19 @@
+#'development' or 'production'
+NODE_ENV='development'  
+
+#
+#solana
+#
+
+#rpc endpoint
+endpoints = [
+    'https://api.mainnet-beta.solana.com',
+    ];
+#sol最小单位
+LAMPORTS_PER_SOL = 1000000000
+#sol地址
+SOL_Token_Address='So11111111111111111111111111111111111111112'
+#raydium地址
+SOL_RAYDIUM_PUBLIC_KEY='675kPX9MHTjS2zt1qfr1NYHuzeLXfQM9H24wFSUt1Mp8'
+#pump地址
+SOL_PUMP_PUBLIC_KEY='6EF8rrecthR5Dkzon8Nwu78hRvfCKubJ14M5uBEwF6P'
