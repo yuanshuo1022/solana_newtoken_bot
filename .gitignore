@@ -3,7 +3,7 @@ node_modules/
 
 #历史代码文件
 .history
-
+.git
 # 日志文件
 logs/
 *.log

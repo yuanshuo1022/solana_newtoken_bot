@@ -28,7 +28,7 @@ app.use('/sol', api_sol);
 // node app.js
 let run = async () => {
     //启动服务器
-    app.listen(18001, () => {
+    app.listen(config.Port, () => {
         console.log('Server started on port 18001');
     });
 }

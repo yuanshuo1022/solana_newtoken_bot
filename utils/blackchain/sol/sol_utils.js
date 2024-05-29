@@ -1,0 +1,141 @@
+const spl_token = require('@solana/spl-token')
+const bs58 = require('bs58');
+const { Keypair, PublicKey, sendAndConfirmTransaction } = require('@solana/web3.js');
+const { fetchWithRetry } = require('../../common/common')
+const { Wallet } = require('@project-serum/anchor');
+
+
+/**
+* 连接钱包
+* @param {string} privateKey 私钥
+* @returns {string} tokenMintAddress 代币地址
+*/
+async function connectWallt(privateKey) {
+    try {
+        const wallet = new Wallet(Keypair.fromSecretKey(bs58.decode(privateKey)));
+        return wallet
+    } catch (error) {
+        return error;
+    }
+}
+/**
+ * 获取代币的精度
+ * @param {Connection} connection 全节点JSON RPC端点的连接
+ * @param {string} tokenMintAddress 代币地址
+ * @returns {int} 代币精度
+ */
+async function getTokenMetadataDecimals(connection, tokenMintAddress) {
+    try {
+        const tokenMintAddressPublicKey = new PublicKey(tokenMintAddress);
+        const res = await spl_token.getMint(connection, tokenMintAddressPublicKey, "confirmed")
+        return res.decimals
+    } catch (error) {
+        console.error('获取精度失败:', error);
+    }
+}
+
+/**
+ * 获取代币供应量等相关信息
+ * @param {Connection} connection 全节点JSON RPC端点的连接
+ * @param {string} tokenMintAddress 代币地址
+ * @returns {json} 代币
+ */
+async function getTokenMetadataInfo(connection, tokenMintAddress) {
+    try {
+        const res = await spl_token.getMint(connection, tokenMintAddress, "confirmed")
+        const data = {
+            mintAuthority: res.mintAuthority,
+            supply: res.supply.toString(),
+            decimals: res.decimals,
+            isInitialized: res.isInitialized,
+        }
+        const tokenInfo = JSON.parse(data)
+        return tokenInfo
+    } catch (error) {
+        console.error('Error fetching token metadata:', error);
+    }
+}
+
+/**
+* 获取代币社交、官网等信息
+* @param {Connection} connection 全节点JSON RPC端点的连接
+* @param {string} tokenMintAddress 代币地址
+* @returns {json} 社交信息
+*/
+async function getTokenMetadata(connection, tokenMintAddress) {
+    try {
+        const mintPublicKey = new PublicKey(tokenMintAddress);
+        const metadataPDA = await programs.metadata.Metadata.getPDA(mintPublicKey);
+
+        const tokenMetadata = await programs.metadata.Metadata.load(connection, metadataPDA);
+
+        const metadata = {
+            name: tokenMetadata.data.data.name,
+            symbol: tokenMetadata.data.data.symbol,
+            uri: tokenMetadata.data.data.uri,
+        };
+        console.log("url:", metadata.data.uri)
+        let config = {
+            method: 'get',
+            maxBodyLength: Infinity,
+            url: metadata.data.uri,
+            timeout: 30000,
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+        };
+        const response = await fetchWithRetry(config);
+        console.log("response: ", response.createdOn)
+        const tokenData1 = [
+            { "代币": tokenMintAddress, "官网": response.website },
+        ]
+        const tokenData2 = [
+            { "推特": response.twitter, "飞机": response.telegram }
+        ]
+
+        const res = {
+            data: {
+                tokenMintAddress: tokenMintAddress,
+                metadata: metadata,
+                twitter: response.twitter,
+                telegram: response.telegram,
+                website: response.website
+            }
+        }
+        console.table(tokenData1)
+        console.table(tokenData2)
+        return res;
+    } catch (error) {
+
+        return error
+    }
+}
+
+/**
+* 获取发行代币的地址
+* @param {json} TokenBalances 解析交易hash返回的postTokenBalnace中的json值
+* @returns {string} tokenMintAddress 代币地址
+*/
+async function findUiTokenAccount(TokenBalances) {
+    try {
+        for (const balance of TokenBalances) {
+            if (balance.mint.toString() != process.env.SOL_Token_Address) {
+                return balance.mint;
+            }
+        }
+        return null; // 如果没有找到匹配的对象，返回 null
+    } catch (error) {
+        return error
+    }
+
+}
+
+
+module.exports = {
+    getTokenMetadataDecimals,
+    getTokenMetadataInfo,
+    getTokenMetadata,
+    findUiTokenAccount,
+    connectWallt
+}
