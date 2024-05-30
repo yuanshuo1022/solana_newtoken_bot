@@ -1,98 +1,98 @@
 const express = require('express');
 const app = express();
-let SolDeal = require("../../service/sol/deal")
-let SolDealService = new SolDeal();
+let initializeSolDeal = require("../../service/sol/deal")
+
 
 // 解析 JSON 请求体
 app.use(express.json());
 
-app.get('/price', async (req, res) => {
+//通过代币地址获取代币价格
+(async () => {
     try {
-        const ids = req.query.ids;
-        if (!ids) {
-            return res.status(400).json({ error: 'Missing required parameter: ids' });
-        }
+        const SolDealService = await initializeSolDeal();
+        app.get('/price', async (req, res) => {
+            try {
+                const ids = req.query.ids;
+                if (!ids) {
+                    return res.status(400).json({ error: 'Missing required parameter: ids' });
+                }
 
-        const params = { ids: ids };
-        const data = await SolDealService.getTokenJupterPrice(params);
-        res.status(200).json(data);
+                const params = { ids: ids };
+                const data = await SolDealService.getTokenJupterPrice(params);
+                res.status(200).json(data);
+            } catch (error) {
+                console.error('Error fetching price:', error);
+                if (error.message.includes('Network response was not ok')) {
+                    res.status(502).json({ error: 'Bad Gateway', details: error.message });
+                } else {
+                    res.status(500).json({ error: 'Internal Server Error', details: error.message });
+                }
+            }
+        });
+
+        //通过代币symbol获取价格
+        app.get('/price-by-symbol', async (req, res) => {
+            try {
+                const ids = req.query.symbol;
+                if (!ids) {
+                    return res.status(400).json({ error: 'Missing required parameter: symbol' });
+                }
+                const params = { ids: ids };
+                const data = await SolDealService.getTokenMarketCapPrice(params);
+                res.status(200).json(data);
+            } catch (error) {
+                console.error('Error fetching price:', error);
+                if (error.message.includes('Network response was not ok')) {
+                    res.status(502).json({ error: 'Bad Gateway', details: error.message });
+                } else {
+                    res.status(500).json({ error: 'Internal Server Error', details: error.message });
+                }
+            }
+        });
+
+        //获取pump代币的价格K线
+        app.get('/price-pump', async (req, res) => {
+            try {
+                const ids = req.query.ids;
+                if (!ids) {
+                    return res.status(400).json({ error: 'Missing required parameter: ids' });
+                }
+
+                const params = { ids: ids };
+                const data = await SolDealService.getPumpPrice(params);
+                res.status(200).json(data);
+            } catch (error) {
+                console.error('Error fetching price:', error);
+                if (error.message.includes('Network response was not ok')) {
+                    res.status(502).json({ error: 'Bad Gateway', details: error.message });
+                } else {
+                    res.status(500).json({ error: 'Internal Server Error', details: error.message });
+                }
+            }
+        });
+
+        //获取交易对
+        app.post('/get-amounts', async (req, res) => {
+            try {
+                const { inputMint, outputMint, amount, slippageBps } = req.body;
+                if (!inputMint || !outputMint || !amount || slippageBps === undefined) {
+                    return res.status(400).json({ error: 'Missing required parameters' });
+                }
+                const params = { inputMint, outputMint, amount, slippageBps };
+                const data = await SolDealService.getMinAmounts(params);
+                res.status(200).json(data);
+            } catch (error) {
+                console.error('Error fetching min amounts:', error);
+                res.status(500).json({ error: 'Internal Server Error', details: error.message });
+            }
+        });
+
+
     } catch (error) {
-        console.error('Error fetching price:', error);
-        if (error.message.includes('Network response was not ok')) {
-            res.status(502).json({ error: 'Bad Gateway', details: error.message });
-        } else {
-            res.status(500).json({ error: 'Internal Server Error', details: error.message });
-        }
+        console.error('Failed to initialize SolDealService:', error);
+        process.exit(1); // Exit the process with a failure code
     }
-});
-
-app.get('/price-by-symbol', async (req, res) => {
-    try {
-        const ids = req.query.symbol;
-        if (!ids) {
-            return res.status(400).json({ error: 'Missing required parameter: ids' });
-        }
-        const params = { ids: symbol };
-        const data = await SolDealService.getTokenMarketCapPrice(params);
-        res.status(200).json(data);
-    } catch (error) {
-        console.error('Error fetching price:', error);
-        if (error.message.includes('Network response was not ok')) {
-            res.status(502).json({ error: 'Bad Gateway', details: error.message });
-        } else {
-            res.status(500).json({ error: 'Internal Server Error', details: error.message });
-        }
-    }
-});
-
-/**
- * @swagger
- * /sol/price-pump:
- *   get:
- *     summary: 获取pump代币的价格K线 
- *     description: 获取pump代币的价格K线，数组中数据间隔5分钟
- *     parameters:
- *       - in: query
- *         name: ids
- *         schema:
- *           type: string
- *         required: true
- *         description: Comma-separated token IDs
- *     responses:
- *       200:
- *         description: Successfully fetched token prices
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 data:
- *                   type: object
- *                   additionalProperties:
- *                     type: object
- *
- */
-app.get('/price-pump', async (req, res) => {
-    try {
-        const ids = req.query.ids;
-        if (!ids) {
-            return res.status(400).json({ error: 'Missing required parameter: ids' });
-        }
-
-        const params = { ids: ids };
-        const data = await SolDealService.getPumpPrice(params);
-        res.status(200).json(data);
-    } catch (error) {
-        console.error('Error fetching price:', error);
-        if (error.message.includes('Network response was not ok')) {
-            res.status(502).json({ error: 'Bad Gateway', details: error.message });
-        } else {
-            res.status(500).json({ error: 'Internal Server Error', details: error.message });
-        }
-    }
-});
-
-
+})();
 
 // 全局处理未捕获的异常
 process.on('uncaughtException', (error) => {

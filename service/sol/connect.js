@@ -16,6 +16,7 @@ class RPCConnector {
         } catch (error) {
             console.error('Connection to', currentEndpoint, 'failed:', error);
             // 切换到下一个节点
+            sleep(1000)
             this.currentEndpointIndex = (this.currentEndpointIndex + 1) % this.endpoints.length;
             return this.connect(); // 递归调用连接方法
         }

@@ -24,7 +24,7 @@ const swaggerInit = (app) => {
 const options = {
   swaggerDefinition,
   // Path to the API docs
-  apis: ['./api/sol/*.js'], 
+  apis: ['./api/sol/swagger/*.js'], 
 };
   const swaggerSpec = swaggerJSDoc(options)
 
