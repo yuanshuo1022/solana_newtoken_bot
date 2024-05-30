@@ -195,9 +195,14 @@ async function initializeSolDeal() {
         async transferSol(params) {
             const privateKey = params.privateKey
             const wallet = await SolUtils.connectWallt(privateKey)
+            const balance = await connection.getBalance(wallet.publicKey);
             const fromAddress = wallet.publicKey.toString()
             const toAddress = params.toAddress
             const amount = params.amount
+
+            if(balance<amount * LAMPORTS_PER_SOL){
+                console.error("交易余额不足")
+            }
             const transaction = new Transaction().add(
                 SystemProgram.transfer({
                     fromPubkey: new PublicKey(fromAddress),

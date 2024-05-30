@@ -107,7 +107,7 @@ app.use(express.json());
             }
         });
         //转账
-        app.post('/sol/transfer', async (req, res) => {
+        app.post('/transfer', async (req, res) => {
             try {
                 const { toAddress, amount, privateKey } = req.body;
         
