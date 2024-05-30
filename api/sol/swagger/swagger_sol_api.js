@@ -1,9 +1,17 @@
 /**
  * @swagger
+ * tags:
+ *   name: SOLANA
+ *   description: solana相关api
+ */
+
+/**
+ * @swagger
  * /sol/price:
  *   get:
  *     summary: 通过代币地址获取代币价格
  *     description: 根据提供的代币地址获取代币的当前价格
+ *     tags: [SOLANA]
  *     parameters:
  *       - in: query
  *         name: ids
@@ -99,6 +107,7 @@
  *   get:
  *     summary: 获取pump代币的价格K线
  *     description: 获取pump代币的价格K线，返回数组中数据间隔5分钟
+ *     tags: [SOLANA]
  *     parameters:
  *       - in: query
  *         name: ids
@@ -207,6 +216,7 @@
  *   get:
  *     summary: 通过代币symbol获取价格
  *     description: 根据提供的代币symbol获取代币的当前市场价格和相关信息
+ *     tags: [SOLANA]
  *     parameters:
  *       - in: query
  *         name: symbol
@@ -412,6 +422,7 @@
  *   post:
  *     summary: 获取交易对的最小金额
  *     description: 根据输入和输出代币地址、金额及滑点，获取交易对的最小金额
+ *     tags: [SOLANA]
  *     requestBody:
  *       required: true
  *       content:
@@ -477,4 +488,184 @@
  *                   description: 错误详情
  */
 
+/**
+ * @swagger
+ * /sol/token-swap:
+ *   post:
+ *     summary: 在Solana区块链上进行代币交换
+ *     description: 此端点允许您在Solana区块链上交换代币。
+ *     tags: [SOLANA]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               inputMint:
+ *                 type: string
+ *                 description: 输入代币的铸币地址。
+ *               outputMint:
+ *                 type: string
+ *                 description: 输出代币的铸币地址。
+ *               amount:
+ *                 type: number
+ *                 description: 输入代币的数量。
+ *               slippageBps:
+ *                 type: number
+ *                 description: 滑点基础点。
+ *               privateKey:
+ *                 type: string
+ *                 description: 用户钱包的私钥。
+ *             required:
+ *               - inputMint
+ *               - outputMint
+ *               - amount
+ *               - slippageBps
+ *               - privateKey
+ *     responses:
+ *       200:
+ *         description: 成功进行代币交换
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 url:
+ *                   type: string
+ *                   description: Solscan上交易的URL。
+ *                 transactionHash:
+ *                   type: string
+ *                   description: 交易的哈希值。
+ *                 gasfee:
+ *                   type: number
+ *                   description: 交易的费用。
+ *                 postTokenBlance:
+ *                   type: object
+ *                   description: 交换后的代币余额。
+ *                   properties:
+ *                     amount:
+ *                       type: string
+ *                       description: 余额数量（字符串形式）。
+ *                     decimals:
+ *                       type: number
+ *                       description: 代币的小数位数。
+ *                     uiAmount:
+ *                       type: number
+ *                       description: 余额的用户界面表示形式。
+ *                     uiAmountString:
+ *                       type: string
+ *                       description: 余额的用户界面表示形式（字符串形式）。
+ *                 preTokenBalnace:
+ *                   type: object
+ *                   description: 交换前的代币余额。
+ *                   properties:
+ *                     amount:
+ *                       type: string
+ *                       description: 余额数量（字符串形式）。
+ *                     decimals:
+ *                       type: number
+ *                       description: 代币的小数位数。
+ *                     uiAmount:
+ *                       type: number
+ *                       description: 余额的用户界面表示形式。
+ *                     uiAmountString:
+ *                       type: string
+ *                       description: 余额的用户界面表示形式（字符串形式）。
+ *                 solAmount:
+ *                   type: number
+ *                   description: 交换过程中涉及的SOL数量。
+ *                 tokenAmount:
+ *                   type: number
+ *                   description: 交换过程中涉及的代币数量。
+ *                 err:
+ *                   type: string
+ *                   description: 交换过程中发生的任何错误。
+ *       400:
+ *         description: 缺少必要参数
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   description: 错误信息。
+ *       500:
+ *         description: 内部服务器错误
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   description: 错误信息。
+ *                 details:
+ *                   type: string
+ *                   description: 详细错误信息。
+ */
+
+/**
+ * @swagger
+ * /sol/transfer:
+ *   post:
+ *     summary: Transfer SOL tokens
+ *     description: This endpoint allows you to transfer SOL tokens on the Solana blockchain.
+ *     tags: [SOLANA]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               toAddress:
+ *                 type: string
+ *                 description: The recipient's address.
+ *               amount:
+ *                 type: number
+ *                 description: The amount of SOL to transfer.
+ *               privateKey:
+ *                 type: string
+ *                 description: The private key of the sender's wallet.
+ *             required:
+ *               - toAddress
+ *               - amount
+ *               - privateKey
+ *     responses:
+ *       200:
+ *         description: Successful SOL transfer
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 confirmation:
+ *                   type: object
+ *                   description: The transaction confirmation details.
+ *       400:
+ *         description: Missing required parameters
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   description: The error message.
+ *       500:
+ *         description: Internal Server Error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   description: The error message.
+ *                 details:
+ *                   type: string
+ *                   description: Detailed error message.
+ */
 module.exports = {}; // 导出一个空对象以确保正确引入

@@ -106,6 +106,25 @@ app.use(express.json());
                 res.status(500).json({ error: 'Internal Server Error', details: error.message });
             }
         });
+        //转账
+        app.post('/sol/transfer', async (req, res) => {
+            try {
+                const { toAddress, amount, privateKey } = req.body;
+        
+                if (!toAddress || !amount || !privateKey) {
+                    return res.status(400).json({ error: 'Missing required parameters' });
+                }
+        
+                const params = { toAddress, amount, privateKey };
+                const transferResult = await SolDealService.transferSol(params);
+        
+                res.status(200).json({ confirmation: transferResult });
+            } catch (error) {
+                console.error('Error during SOL transfer:', error);
+                res.status(500).json({ error: 'Internal Server Error', details: error.message });
+            }
+        });
+
 
     } catch (error) {
         console.error('Failed to initialize SolDealService:', error);
