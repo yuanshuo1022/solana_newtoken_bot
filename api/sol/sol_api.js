@@ -6,10 +6,11 @@ let initializeSolDeal = require("../../service/sol/deal")
 // 解析 JSON 请求体
 app.use(express.json());
 
-//通过代币地址获取代币价格
 (async () => {
     try {
         const SolDealService = await initializeSolDeal();
+        
+        //通过代币地址获取代币价格
         app.get('/price', async (req, res) => {
             try {
                 const ids = req.query.ids;
@@ -87,6 +88,24 @@ app.use(express.json());
             }
         });
 
+        //swap交易
+        app.post('/token-swap', async (req, res) => {
+            try {
+                const { inputMint, outputMint, amount, slippageBps, privateKey } = req.body;
+        
+                if (!inputMint || !outputMint || !amount || slippageBps === undefined || !privateKey) {
+                    return res.status(400).json({ error: 'Missing required parameters' });
+                }
+        
+                const params = { inputMint, outputMint, amount, slippageBps, privateKey };
+                const swapResult = await SolDealService.tokenSwap(params);
+        
+                res.status(200).json(swapResult);
+            } catch (error) {
+                console.error('Error during token swap:', error);
+                res.status(500).json({ error: 'Internal Server Error', details: error.message });
+            }
+        });
 
     } catch (error) {
         console.error('Failed to initialize SolDealService:', error);

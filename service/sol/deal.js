@@ -5,7 +5,10 @@ const spl_token = require('@solana/spl-token')
 const ConnectRPC = require('./connect');
 const SolUtils = require('../../utils/blackchain/sol/sol_utils');
 const CommonUtils = require('../../utils/common/common');
+const transactionSenderAndConfirmationWaiter = require("../../utils/blackchain/sol/transactionSender")
+const getSignature = require("../../utils/blackchain/sol/getSignature")
 dotenv.config();
+const LAMPORTS_PER_SOL = process.env.LAMPORTS_PER_SOL;
 const ENDPOINT_SOL = JSON.parse(process.env.ENDPOINT_SOL) //PRC
 const JUPITER_V4_URL = process.env.JUPITER_V4_URL //JUPITER V4 URL
 const JUPITER_V6_URL = process.env.JUPITER_V6_URL ////JUPITER V6 URL
@@ -66,13 +69,12 @@ async function initializeSolDeal() {
                 throw error;
             }
         }
-        //获取交易对
+        //获取交易对输出的最小数量
         async getMinAmounts(params) {
             try {
                 const inputMint = params.inputMint         //输入代币地址
                 const outputMint = params.outputMint        //输出代币地址
                 const amount = params.amount
-                console.log("amount", amount)
                 const slippageBps = params.slippageBps * 100     //滑点
                 // const platformFeeBps = params.platformFeeBps // 平台费用、收手续费
                 const inputMintDecimals = await SolUtils.getTokenMetadataDecimals(connection, inputMint)
@@ -80,7 +82,6 @@ async function initializeSolDeal() {
                 const amountSol = amount * Math.pow(10, inputMintDecimals);
                 //构造请求url
                 const url = `${JUPITER_V6_URL}quote?inputMint=${inputMint}&outputMint=${outputMint}&amount=${amountSol}&slippageBps=${slippageBps}`   //&platformFeeBps=${platformFeeBps}
-                console.log("url: ", url)
                 // 发起网络请求
                 const quote = await CommonUtils.fetchResJson(url)
                 const res = {
@@ -94,7 +95,122 @@ async function initializeSolDeal() {
                 return error;
             }
         }
+        //初始化兑换买入交易
+        async initswap(params, wallet) {
+            try {
+                const res = await this.getMinAmounts(params)
+                const quote = res.quote
+                const config = {
+                    method: 'POST',
+                    url: `${JUPITER_V6_URL}swap`,
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    data: JSON.stringify({
+                        // Payload for the swap
+                        quoteResponse: quote,
+                        userPublicKey: wallet.publicKey.toString(),
+                        wrapAndUnwrapSol: true,
+                        dynamicComputeUnitLimit: true,
+                        prioritizationFeeLamports: 'auto'
+                        // feeAccount,
+                    })
+                };
+                const swapTransaction = await CommonUtils.fetchWithRetry(config)
+                return swapTransaction
+            } catch (error) {
+                console.error(error);
+                return error;
+            }
+        }
 
+        //swap 交易
+        async tokenSwap(params) {
+            let txSwap
+            try {
+                // const platformPayeeAddress = params.platformPayeeAddress //手续费接收地址
+                // const platformTrFee = params.platformTrFee   //手续费
+                const privateKey = params.privateKey
+                const wallet = await SolUtils.connectWallt(privateKey)
+                const swapTransaction = await this.initswap(params, wallet)
+                //序列化参数
+                const swapTransactionBuf = Buffer.from(swapTransaction.swapTransaction, 'base64');
+                var transaction = VersionedTransaction.deserialize(swapTransactionBuf);
+                const blockhash = transaction.message.recentBlockhash;
+                //签名交易 sign the transaction
+                transaction.sign([wallet.payer]);
+                const signatrue = await getSignature(transaction)
+                console.log("signatrue", signatrue)
+                //验证交易是否合法
+                const { value: simulatedTransactionResponse } = await connection.simulateTransaction(transaction, {
+                    replaceRecentBlockhash: true,
+                    commitment: "processed",
+                })
+                const { err, logs } = simulatedTransactionResponse;
+
+                if (err) {
+                    console.error("Simulation Error:");
+                    console.error({ err, logs });
+                    return { err, logs };
+                }
+                //反序列化交易 Execute the transaction
+                const rawTransaction = transaction.serialize()
+                const blockhashWithExpiryBlockHeight = {
+                    blockhash,
+                    lastValidBlockHeight: swapTransaction.lastValidBlockHeight,
+                }
+                const serializedTransaction = Buffer.from(rawTransaction);
+                //提交执行交易
+                console.log('开始confirmTransaction：');
+                txSwap = await transactionSenderAndConfirmationWaiter({ connection, serializedTransaction, blockhashWithExpiryBlockHeight });
+                let mintAccount = await CommonUtils.isEquals(params.inputMint, process.env.SOL_Token_Address, params.outputMint, params.inputMint)
+                const postTokenBlance = await SolUtils.findUiTokenAmount(wallet.publicKey.toString(), mintAccount, txSwap.meta.postTokenBalances)
+                const preTokenBalnace = await SolUtils.findUiTokenAmount(wallet.publicKey.toString(), mintAccount, txSwap.meta.preTokenBalances)
+                const postBalance = txSwap.meta.postBalances[0]
+                const preBlance = txSwap.meta.preBalances[0]
+                const solAmount = postBalance - preBlance
+                const tokenAmount = postTokenBlance.uiAmount - preTokenBalnace.uiAmount
+                return {
+                    url: 'https://solscan.io/tx/' + signatrue,
+                    transactionHash: signatrue, //交易hash
+                    gasfee: txSwap.meta.fee,
+                    postTokenBlance: postTokenBlance,
+                    preTokenBalnace: preTokenBalnace,
+                    solAmount: solAmount / LAMPORTS_PER_SOL,
+                    tokenAmount: tokenAmount,
+                    txSwap:txSwap,
+                    err: txSwap.meta.err
+                }
+            } catch (error) {
+                console.log(error);
+                const res = {
+                    error: error.message ? error.message : error,
+                    transactionHash: txSwap
+                }
+                throw res;
+            }
+        }
+
+        //转账
+        async transferSol(params) {
+            const privateKey = params.privateKey
+            const wallet = await SolUtils.connectWallt(privateKey)
+            const fromAddress = wallet.publicKey.toString()
+            const toAddress = params.toAddress
+            const amount = params.amount
+            const transaction = new Transaction().add(
+                SystemProgram.transfer({
+                    fromPubkey: new PublicKey(fromAddress),
+                    toPubkey: new PublicKey(toAddress),
+                    lamports: amount * LAMPORTS_PER_SOL,
+                })
+            );
+            const signature = await connection.sendTransaction(transaction, [wallet.payer]);
+            // 等待交易确认
+            const tx = await connection.confirmTransaction(signature);
+            console.log('Transaction confirmed:', signature);
+            return tx;
+        }
     }
     return new sol_deal()
 }

@@ -24,29 +24,7 @@ async function fetchWithRetry(config, maxRetries = 3, retryDelay = 1000) {
     }
 }
 
-/**
-* http请求、重试机制
-* @param {json} config 配置请求参数
-* @param {int} maxRetries 最大重试次数
-* @param {int} retryDelay 重试间隔时间 ms
-* @returns {json} response.data
-*/
-async function fetchWithRetryRes(config, maxRetries = 3, retryDelay = 1000) {
-    let attempts = 0;
-    while (attempts < maxRetries) {
-        try {
-            let response = await axios.request(config);
-            return response;
-        } catch (error) {
-            attempts++;
-            console.error(`Attempt ${attempts} failed: ${error.message}`);
-            if (attempts >= maxRetries) {
-                throw new Error(`Failed after ${maxRetries} attempts: ${error.message}`);
-            }
-            await new Promise(resolve => setTimeout(resolve, retryDelay));
-        }
-    }
-}
+
 /**
 * http请求
 * @param {string} url 配置请求参数
@@ -114,20 +92,20 @@ async function parseTokenJson(tokenJson) {
 * 判断是否相等
 * @param {T}  校验信息
 * @param {T}  校验信息
-* @returns {bool} 是否相等
+* @returns {T} 相等返回param1，不相等返回param2
 */
-async function isEquals(verifyInfo, conInfo) {
+async function isEquals(verifyInfo, conInfo,param1,param2) {
     if (verifyInfo == conInfo) {
-        return true;
+        return param1;
     } else {
-        return false;
+        return param2;
     }
 }
 /**
 * 判断是否是同一地址
 * @param {string}  账户地址
 * @param {string}  账户地址
-* @returns {bool} 是否相等
+* @returns {bool} 
 */
 async function isEqualsAddress(Address1, Address2) {
     if (Address1.toLowerCase() == Address2.toLowerCase()) {
@@ -138,7 +116,6 @@ async function isEqualsAddress(Address1, Address2) {
 
 module.exports =
 {   fetchWithRetry,
-    fetchWithRetryRes,
     parseTokenJson,
     isEqualsAddress,
     isEquals,
