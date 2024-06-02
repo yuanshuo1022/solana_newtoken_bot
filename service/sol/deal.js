@@ -17,19 +17,9 @@ const COIN_MARKET_CAP_BASE_URL = process.env.COIN_MARKET_CAP_BASE_URL //coin mar
 async function initializeSolDeal() {
     const connection = await ConnectRPC.connection(ENDPOINT_SOL);
     class sol_deal {
-
-        //获取代币价格 jupter swap api
-        async getTokenJupterPrice(params) {
-            try {
-                const ids = params.ids;
-                const url = `${JUPITER_V4_URL}price?ids=${ids}&vsToken=${USDC_ACCOUNT}`;
-                const data = await CommonUtils.fetchResJson(url)
-                return data;
-            } catch (error) {
-                console.error(error)
-                throw error;
-            }
-        }
+        /*
+        COMMON 相关
+        */
         //获取代币价格 coin market cap
         async getTokenMarketCapPrice(params) {
             try {
@@ -54,22 +44,59 @@ async function initializeSolDeal() {
                 throw error;
             }
         }
-        //获取pump代币价格
-        async getPumpPrice(params) {
-            const ids = params.ids;
+        //查询sol余额
+        async getSolBalance(params) {
+            const publicKey = new PublicKey(params.publicKey);
+            const balance = await connection.getBalance(publicKey);
+            return balance;
+        }
+        //查询代币余额
+        async getTokenBalance(params) {
+            const TokenBalance = await SolUtils.getTokenBalance(connection, params.publicKey, params.mintAccount);
+            return TokenBalance;
+        }
+        //转账
+        async transferSol(params) {
+            const privateKey = params.privateKey
+            const wallet = await SolUtils.connectWallt(privateKey)
+            const balance = await connection.getBalance(wallet.publicKey);
+            const fromAddress = wallet.publicKey.toString()
+            const toAddress = params.toAddress
+            const amount = params.amount
+
+            if (balance < amount * LAMPORTS_PER_SOL) {
+                console.error("交易余额不足")
+            }
+            const transaction = new Transaction().add(
+                SystemProgram.transfer({
+                    fromPubkey: new PublicKey(fromAddress),
+                    toPubkey: new PublicKey(toAddress),
+                    lamports: amount * LAMPORTS_PER_SOL,
+                })
+            );
+            const signature = await connection.sendTransaction(transaction, [wallet.payer]);
+            // 等待交易确认
+            const tx = await connection.confirmTransaction(signature);
+            console.log('Transaction confirmed:', signature);
+            return tx;
+        }
+
+        /*
+        JUPTER平台 相关
+        */
+        //获取代币价格 jupter swap api
+        async getTokenJupterPrice(params) {
             try {
-                let config = {
-                    method: 'GET',
-                    maxBodyLength: Infinity,
-                    url: `https://client-api-2-74b1891ee9f9.herokuapp.com/candlesticks/${ids}`,
-                };
-                const data = await CommonUtils.fetchWithRetry(config)
+                const ids = params.ids;
+                const url = `${JUPITER_V4_URL}price?ids=${ids}&vsToken=${USDC_ACCOUNT}`;
+                const data = await CommonUtils.fetchResJson(url)
                 return data;
             } catch (error) {
+                console.error(error)
                 throw error;
             }
         }
-        //获取交易对输出的最小数量
+        //获取交易对输出的最小数量 jupter
         async getMinAmounts(params) {
             try {
                 const inputMint = params.inputMint         //输入代币地址
@@ -95,7 +122,7 @@ async function initializeSolDeal() {
                 return error;
             }
         }
-        //初始化兑换买入交易
+        //初始化兑换买入交易 jupter
         async initswap(params, wallet) {
             try {
                 const res = await this.getMinAmounts(params)
@@ -124,7 +151,7 @@ async function initializeSolDeal() {
             }
         }
 
-        //swap 交易
+        //swap 交易 jupter
         async tokenSwap(params) {
             let txSwap
             try {
@@ -178,7 +205,7 @@ async function initializeSolDeal() {
                     preTokenBalnace: preTokenBalnace,
                     solAmount: solAmount / LAMPORTS_PER_SOL,
                     tokenAmount: tokenAmount,
-                    txSwap:txSwap,
+                    txSwap: txSwap,
                     err: txSwap.meta.err
                 }
             } catch (error) {
@@ -190,42 +217,45 @@ async function initializeSolDeal() {
                 throw res;
             }
         }
-        //查询sol余额
-        async getSolBalance(params) {
-            const publicKey = new PublicKey(params.publicKey);
-            const balance = await connection.getBalance(publicKey);
-            return balance;
-        }
-        //查询代币余额
-        async getTokenBalance(params) {
-            const TokenBalance = await SolUtils.getTokenBalance(connection,params.publicKey,params.mintAccount);
-            return TokenBalance;
-        }
-        //转账
-        async transferSol(params) {
-            const privateKey = params.privateKey
-            const wallet = await SolUtils.connectWallt(privateKey)
-            const balance = await connection.getBalance(wallet.publicKey);
-            const fromAddress = wallet.publicKey.toString()
-            const toAddress = params.toAddress
-            const amount = params.amount
 
-            if(balance<amount * LAMPORTS_PER_SOL){
-                console.error("交易余额不足")
+
+        /*
+        * PUMP平台 
+        */
+        //获取pump代币价格
+        async getPumpPrice(params) {
+            const ids = params.ids;
+            try {
+                let config = {
+                    method: 'GET',
+                    maxBodyLength: Infinity,
+                    url: `https://client-api-2-74b1891ee9f9.herokuapp.com/candlesticks/${ids}`,
+                };
+                const data = await CommonUtils.fetchWithRetry(config)
+                return data;
+            } catch (error) {
+                throw error;
             }
-            const transaction = new Transaction().add(
-                SystemProgram.transfer({
-                    fromPubkey: new PublicKey(fromAddress),
-                    toPubkey: new PublicKey(toAddress),
-                    lamports: amount * LAMPORTS_PER_SOL,
-                })
-            );
-            const signature = await connection.sendTransaction(transaction, [wallet.payer]);
-            // 等待交易确认
-            const tx = await connection.confirmTransaction(signature);
-            console.log('Transaction confirmed:', signature);
-            return tx;
         }
+
+        //获取pump代币信息
+        async getPumpTokenInfo(params) {
+            const ids = params.ids;
+            try {
+                let config = {
+                    method: 'get',
+                    maxBodyLength: Infinity,
+                    url: `https://client-api-2-74b1891ee9f9.herokuapp.com/coins/${ids}`,
+                    headers: { },
+                    timeout: 3000
+                  };
+                const data = await CommonUtils.fetchWithRetry(config)
+                return data;
+            }catch (error) {
+                console.log(error)
+            }
+        }
+
     }
     return new sol_deal()
 }

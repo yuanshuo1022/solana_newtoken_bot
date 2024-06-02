@@ -802,4 +802,152 @@
  *                   type: string
  *                   description: 错误信息
  */
+
+/**
+ * @swagger
+ * /sol/pump-tokeninfo:
+ *   get:
+ *     summary: 获取pump代币信息
+ *     description: 通过代币地址获取pump代币的详细信息。
+ *     parameters:
+ *       - in: query
+ *         name: ids
+ *         required: true
+ *         description: 代币地址的ID。
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: 成功获取代币信息
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 mint:
+ *                   type: string
+ *                   description: 代币的Mint地址
+ *                 name:
+ *                   type: string
+ *                   description: 代币的名称
+ *                 symbol:
+ *                   type: string
+ *                   description: 代币的符号
+ *                 description:
+ *                   type: string
+ *                   description: 代币的描述
+ *                 image_uri:
+ *                   type: string
+ *                   description: 代币的图片URI
+ *                 metadata_uri:
+ *                   type: string
+ *                   description: 代币的元数据URI
+ *                 twitter:
+ *                   type: string
+ *                   description: 代币的Twitter链接
+ *                 telegram:
+ *                   type: string
+ *                   description: 代币的Telegram链接
+ *                 bonding_curve:
+ *                   type: string
+ *                   description: 代币的Bonding Curve地址
+ *                 associated_bonding_curve:
+ *                   type: string
+ *                   description: 关联的Bonding Curve地址
+ *                 creator:
+ *                   type: string
+ *                   description: 代币的创建者地址
+ *                 created_timestamp:
+ *                   type: integer
+ *                   description: 创建时间戳
+ *                 raydium_pool:
+ *                   type: string
+ *                   description: Raydium流动性池地址
+ *                 complete:
+ *                   type: boolean
+ *                   description: 是否完成
+ *                 virtual_sol_reserves:
+ *                   type: integer
+ *                   description: 虚拟SOL储备
+ *                 virtual_token_reserves:
+ *                   type: integer
+ *                   description: 虚拟代币储备
+ *                 total_supply:
+ *                   type: integer
+ *                   description: 代币总供应量
+ *                 website:
+ *                   type: string
+ *                   description: 代币的官方网站
+ *                 show_name:
+ *                   type: boolean
+ *                   description: 是否显示名称
+ *                 king_of_the_hill_timestamp:
+ *                   type: integer
+ *                   description: "King of the Hill" 时间戳
+ *                 market_cap:
+ *                   type: number
+ *                   description: 市值
+ *                 reply_count:
+ *                   type: integer
+ *                   description: 回复数
+ *                 last_reply:
+ *                   type: integer
+ *                   description: 上次回复时间戳
+ *                 nsfw:
+ *                   type: boolean
+ *                   description: 是否为NSFW内容
+ *                 market_id:
+ *                   type: string
+ *                   description: 市场ID
+ *                 inverted:
+ *                   type: boolean
+ *                   description: 是否倒置
+ *                 username:
+ *                   type: string
+ *                   description: 用户名
+ *                 profile_image:
+ *                   type: string
+ *                   nullable: true
+ *                   description: 个人资料图片
+ *                 usd_market_cap:
+ *                   type: number
+ *                   description: 以美元计算的市值
+ *       400:
+ *         description: 缺少必要的参数
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   description: 错误信息
+ *       502:
+ *         description: 网关错误
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   description: 错误信息
+ *                 details:
+ *                   type: string
+ *                   description: 详细错误信息
+ *       500:
+ *         description: 服务器内部错误
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   description: 错误信息
+ *                 details:
+ *                   type: string
+ *                   description: 详细错误信息
+ */
+
 module.exports = {}; // 导出一个空对象以确保正确引入

@@ -10,7 +10,7 @@ app.use(express.json());
     try {
         const SolDealService = await initializeSolDeal();
 
-        //通过代币地址获取代币价格
+        //通过代币地址获取代币价格 JUPTER
         app.get('/price', async (req, res) => {
             try {
                 const ids = req.query.ids;
@@ -31,7 +31,7 @@ app.use(express.json());
             }
         });
 
-        //通过代币symbol获取价格
+        //通过代币symbol获取价格 MERTCOIN
         app.get('/price-by-symbol', async (req, res) => {
             try {
                 const ids = req.query.symbol;
@@ -51,7 +51,7 @@ app.use(express.json());
             }
         });
 
-        //获取pump代币的价格K线
+        //获取pump代币的价格K线 PUMP
         app.get('/price-pump', async (req, res) => {
             try {
                 const ids = req.query.ids;
@@ -72,7 +72,7 @@ app.use(express.json());
             }
         });
 
-        //获取交易对
+        //获取交易对 JUPTER
         app.post('/get-amounts', async (req, res) => {
             try {
                 const { inputMint, outputMint, amount, slippageBps } = req.body;
@@ -88,7 +88,7 @@ app.use(express.json());
             }
         });
 
-        //swap交易
+        //swap交易 JUPTER
         app.post('/token-swap', async (req, res) => {
             try {
                 const { inputMint, outputMint, amount, slippageBps, privateKey } = req.body;
@@ -106,7 +106,7 @@ app.use(express.json());
                 res.status(500).json({ error: 'Internal Server Error', details: error.message });
             }
         });
-        //转账
+        //转账 COMMON
         app.post('/transfer', async (req, res) => {
             try {
                 const { toAddress, amount, privateKey } = req.body;
@@ -124,7 +124,7 @@ app.use(express.json());
                 res.status(500).json({ error: 'Internal Server Error', details: error.message });
             }
         });
-        //获取代币余额
+        //获取代币余额 COMMON
         app.post('/get-token-balance', async (req, res) => {
             try {
                 const { publicKey, mintAccount } = req.body;
@@ -142,7 +142,7 @@ app.use(express.json());
                 res.status(500).json({ error: '服务器内部错误', details: error.message });
             }
         });
-        //获取sol余额
+        //获取sol余额 COMMON
         app.post('/get-sol-balance', async (req, res) => {
             try {
                 const { publicKey } = req.body;
@@ -158,6 +158,27 @@ app.use(express.json());
                 res.status(500).json({ error: 'Internal Server Error', details: error.message });
             }
         });
+        //通过代币地址获取pump代币信息
+        app.get('/pump-tokeninfo', async (req, res) => {
+            try {
+                const ids = req.query.ids;
+                if (!ids) {
+                    return res.status(400).json({ error: 'Missing required parameter: ids' });
+                }
+
+                const params = { ids: ids };
+                const data = await SolDealService.getPumpTokenInfo(params);
+                res.status(200).json(data);
+            } catch (error) {
+                console.error('Error fetching price:', error);
+                if (error.message.includes('Network response was not ok')) {
+                    res.status(502).json({ error: 'Bad Gateway', details: error.message });
+                } else {
+                    res.status(500).json({ error: 'Internal Server Error', details: error.message });
+                }
+            }
+        });
+
     } catch (error) {
         console.error('Failed to initialize SolDealService:', error);
         process.exit(1); // Exit the process with a failure code
