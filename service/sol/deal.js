@@ -1,4 +1,4 @@
-const { Connection, Keypair, VersionedTransaction, Transaction, SystemProgram, PublicKey, SolanaJSONRPCError, sendAndConfirmTransaction } = require('@solana/web3.js');
+const { VersionedTransaction, Transaction, SystemProgram, PublicKey } = require('@solana/web3.js');
 const dotenv = require('dotenv');
 const bs58 = require('bs58');
 const spl_token = require('@solana/spl-token')
@@ -190,7 +190,17 @@ async function initializeSolDeal() {
                 throw res;
             }
         }
-
+        //查询sol余额
+        async getSolBalance(params) {
+            const publicKey = new PublicKey(params.publicKey);
+            const balance = await connection.getBalance(publicKey);
+            return balance;
+        }
+        //查询代币余额
+        async getTokenBalance(params) {
+            const TokenBalance = await SolUtils.getTokenBalance(connection,params.publicKey,params.mintAccount);
+            return TokenBalance;
+        }
         //转账
         async transferSol(params) {
             const privateKey = params.privateKey

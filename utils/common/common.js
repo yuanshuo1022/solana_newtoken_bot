@@ -32,6 +32,7 @@ async function fetchWithRetry(config, maxRetries = 3, retryDelay = 1000) {
 */
 async function fetchResJson(url) {
     try {
+        console.log("请求url:",url)
         const response = await fetch(url);
         // 检查网络请求是否成功
         if (!response.ok) {

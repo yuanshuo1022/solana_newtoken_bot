@@ -9,7 +9,7 @@ app.use(express.json());
 (async () => {
     try {
         const SolDealService = await initializeSolDeal();
-        
+
         //通过代币地址获取代币价格
         app.get('/price', async (req, res) => {
             try {
@@ -92,14 +92,14 @@ app.use(express.json());
         app.post('/token-swap', async (req, res) => {
             try {
                 const { inputMint, outputMint, amount, slippageBps, privateKey } = req.body;
-        
+
                 if (!inputMint || !outputMint || !amount || slippageBps === undefined || !privateKey) {
                     return res.status(400).json({ error: 'Missing required parameters' });
                 }
-        
+
                 const params = { inputMint, outputMint, amount, slippageBps, privateKey };
                 const swapResult = await SolDealService.tokenSwap(params);
-        
+
                 res.status(200).json(swapResult);
             } catch (error) {
                 console.error('Error during token swap:', error);
@@ -110,22 +110,54 @@ app.use(express.json());
         app.post('/transfer', async (req, res) => {
             try {
                 const { toAddress, amount, privateKey } = req.body;
-        
+
                 if (!toAddress || !amount || !privateKey) {
                     return res.status(400).json({ error: 'Missing required parameters' });
                 }
-        
+
                 const params = { toAddress, amount, privateKey };
                 const transferResult = await SolDealService.transferSol(params);
-        
+
                 res.status(200).json({ confirmation: transferResult });
             } catch (error) {
                 console.error('Error during SOL transfer:', error);
                 res.status(500).json({ error: 'Internal Server Error', details: error.message });
             }
         });
+        //获取代币余额
+        app.post('/get-token-balance', async (req, res) => {
+            try {
+                const { publicKey, mintAccount } = req.body;
 
+                if (!publicKey || !mintAccount) {
+                    return res.status(400).json({ error: '缺少必要的参数' });
+                }
 
+                const params = { publicKey, mintAccount };
+                const tokenBalance = await SolDealService.getTokenBalance(params)
+
+                res.status(200).json({ balance: tokenBalance });
+            } catch (error) {
+                console.error('Error during token balance query:', error);
+                res.status(500).json({ error: '服务器内部错误', details: error.message });
+            }
+        });
+        //获取sol余额
+        app.post('/get-sol-balance', async (req, res) => {
+            try {
+                const { publicKey } = req.body;
+
+                if (!publicKey) {
+                    return res.status(400).json({ error: 'Missing required parameter: publicKey' });
+                }
+                const params = { publicKey };
+                const balance = await SolDealService.getSolBalance(params);
+                res.status(200).json({ balance });
+            } catch (error) {
+                console.error('Error fetching SOL balance:', error);
+                res.status(500).json({ error: 'Internal Server Error', details: error.message });
+            }
+        });
     } catch (error) {
         console.error('Failed to initialize SolDealService:', error);
         process.exit(1); // Exit the process with a failure code

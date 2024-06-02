@@ -2,7 +2,7 @@
  * @swagger
  * tags:
  *   name: SOLANA
- *   description: solana相关api
+ *   description: solana相关接口
  */
 
 /**
@@ -610,8 +610,8 @@
  * @swagger
  * /sol/transfer:
  *   post:
- *     summary: Transfer SOL tokens
- *     description: This endpoint allows you to transfer SOL tokens on the Solana blockchain.
+ *     summary: SOL代币转账
+ *     description: 这个方法允许您在Solana区块链上转账SOL代币。
  *     tags: [SOLANA]
  *     requestBody:
  *       required: true
@@ -667,5 +667,139 @@
  *                 details:
  *                   type: string
  *                   description: Detailed error message.
+ */
+
+/**
+ * @swagger
+ * /sol/get-token-balance:
+ *   post:
+ *     tags: [SOLANA]
+ *     summary: 查询代币余额
+ *     description: 通过公钥和代币铸币账户查询指定地址的代币余额
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               publicKey:
+ *                 type: string
+ *                 description: 用户的钱包公钥
+ *               mintAccount:
+ *                 type: string
+ *                 description: 代币的铸币账户
+ *             required:
+ *               - publicKey
+ *               - mintAccount
+ *     responses:
+ *       200:
+ *         description: 成功查询代币余额
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 balance:
+ *                   type: object
+ *                   properties:
+ *                     context:
+ *                       type: object
+ *                       properties:
+ *                         apiVersion:
+ *                           type: string
+ *                           description: API版本
+ *                         slot:
+ *                           type: integer
+ *                           description: 区块槽
+ *                     value:
+ *                       type: object
+ *                       properties:
+ *                         amount:
+ *                           type: string
+ *                           description: 代币数量（最小精度）
+ *                         decimals:
+ *                           type: integer
+ *                           description: 代币的精度
+ *                         uiAmount:
+ *                           type: number
+ *                           description: 用户界面显示的代币数量
+ *                         uiAmountString:
+ *                           type: string
+ *                           description: 用户界面显示的代币数量（字符串格式）
+ *       400:
+ *         description: 缺少必要的参数
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   description: 错误信息
+ *       500:
+ *         description: 服务器内部错误
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   description: 错误信息
+ *                 details:
+ *                   type: string
+ *                   description: 详细的错误信息
+ */
+/**
+ * @swagger
+ * /sol/get-sol-balance:
+ *   post:
+ *     tags: [SOLANA]
+ *     summary: 获取Solana余额
+ *     description: 获取指定公钥地址的Solana余额
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               publicKey:
+ *                 type: string
+ *                 description: 用户的公钥地址
+ *             required:
+ *               - publicKey
+ *     responses:
+ *       200:
+ *         description: 成功获取余额
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 balance:
+ *                   type: number
+ *                   description: 余额，单位为Lamports
+ *       400:
+ *         description: 缺少必要参数或参数无效
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   description: 错误信息
+ *       500:
+ *         description: 服务器内部错误
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   description: 错误信息
  */
 module.exports = {}; // 导出一个空对象以确保正确引入

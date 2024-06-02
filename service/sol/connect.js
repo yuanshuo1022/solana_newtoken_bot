@@ -11,12 +11,14 @@ class RPCConnector {
         const currentEndpoint = this.endpoints[this.currentEndpointIndex];
         try {
             const connection = new Connection(currentEndpoint);
+            const slot = await connection.getSlot();
+            console.log("当前高度：",slot)
             console.log('Connected to RPC server:', currentEndpoint);
             return connection;
         } catch (error) {
             console.error('Connection to', currentEndpoint, 'failed:', error);
             // 切换到下一个节点
-            sleep(1000)
+            new Promise(resolve => setTimeout(resolve, 2000));
             this.currentEndpointIndex = (this.currentEndpointIndex + 1) % this.endpoints.length;
             return this.connect(); // 递归调用连接方法
         }
