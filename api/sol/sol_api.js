@@ -1,7 +1,9 @@
 const express = require('express');
 const app = express();
 let initializeSolDeal = require("../../service/sol/deal")
+let initMonitor = require("../../service/sol/monitor")
 
+ 
 
 // 解析 JSON 请求体
 app.use(express.json());
@@ -9,7 +11,8 @@ app.use(express.json());
 (async () => {
     try {
         const SolDealService = await initializeSolDeal();
-
+        const monitorService = await initMonitor()
+        monitorService.monitor_pump_newtoken()
         //通过代币地址获取代币价格 JUPTER
         app.get('/price', async (req, res) => {
             try {

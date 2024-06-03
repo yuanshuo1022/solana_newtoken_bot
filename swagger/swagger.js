@@ -18,6 +18,10 @@ const swaggerInit = (app) => {
           url: 'http://localhost:18001', // API 服务器地址
           description: '开发服务器',
         },
+        {
+          url:"http://127.0.0.1:18001", // 后期更换ip
+          description: '测试服务器',
+        },
       ],
   }
   // Options for the swagger docs

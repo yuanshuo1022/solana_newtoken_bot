@@ -1,17 +1,31 @@
 /**
  * @swagger
  * tags:
- *   name: SOLANA
- *   description: solana相关接口
+ *   name: JUPTER
+ *   description: jupter swap平台相关接口
+ */
+
+/**
+ * @swagger
+ * tags:
+ *   name: PUMP
+ *   description: pump.fun swap平台相关接口
+ */
+
+/**
+ * @swagger
+ * tags:
+ *   name: BASE
+ *   description: solana基础接口
  */
 
 /**
  * @swagger
  * /sol/price:
  *   get:
- *     summary: 通过代币地址获取代币价格
+ *     summary: 通过代币地址获取代币价格 
  *     description: 根据提供的代币地址获取代币的当前价格
- *     tags: [SOLANA]
+ *     tags: [JUPTER]
  *     parameters:
  *       - in: query
  *         name: ids
@@ -107,7 +121,7 @@
  *   get:
  *     summary: 获取pump代币的价格K线
  *     description: 获取pump代币的价格K线，返回数组中数据间隔5分钟
- *     tags: [SOLANA]
+ *     tags: [PUMP]
  *     parameters:
  *       - in: query
  *         name: ids
@@ -216,7 +230,7 @@
  *   get:
  *     summary: 通过代币symbol获取价格
  *     description: 根据提供的代币symbol获取代币的当前市场价格和相关信息
- *     tags: [SOLANA]
+ *     tags: [BASE]
  *     parameters:
  *       - in: query
  *         name: symbol
@@ -420,9 +434,9 @@
  * @swagger
  * /sol/get-amounts:
  *   post:
- *     summary: 获取交易对的最小金额
+ *     summary: 获取交易对的最小金额 
  *     description: 根据输入和输出代币地址、金额及滑点，获取交易对的最小金额
- *     tags: [SOLANA]
+ *     tags: [JUPTER]
  *     requestBody:
  *       required: true
  *       content:
@@ -492,9 +506,9 @@
  * @swagger
  * /sol/token-swap:
  *   post:
- *     summary: 在Solana区块链上进行代币交换
+ *     summary: 在Solana区块链上进行代币交换 
  *     description: 此端点允许您在Solana区块链上交换代币。
- *     tags: [SOLANA]
+ *     tags: [JUPTER]
  *     requestBody:
  *       required: true
  *       content:
@@ -612,7 +626,7 @@
  *   post:
  *     summary: SOL代币转账
  *     description: 这个方法允许您在Solana区块链上转账SOL代币。
- *     tags: [SOLANA]
+ *     tags: [BASE]
  *     requestBody:
  *       required: true
  *       content:
@@ -673,7 +687,7 @@
  * @swagger
  * /sol/get-token-balance:
  *   post:
- *     tags: [SOLANA]
+ *     tags: [BASE]
  *     summary: 查询代币余额
  *     description: 通过公钥和代币铸币账户查询指定地址的代币余额
  *     requestBody:
@@ -755,7 +769,7 @@
  * @swagger
  * /sol/get-sol-balance:
  *   post:
- *     tags: [SOLANA]
+ *     tags: [BASE]
  *     summary: 获取Solana余额
  *     description: 获取指定公钥地址的Solana余额
  *     requestBody:
@@ -807,6 +821,7 @@
  * @swagger
  * /sol/pump-tokeninfo:
  *   get:
+ *     tags: [PUMP]
  *     summary: 获取pump代币信息
  *     description: 通过代币地址获取pump代币的详细信息。
  *     parameters:
@@ -883,7 +898,7 @@
  *                   description: 是否显示名称
  *                 king_of_the_hill_timestamp:
  *                   type: integer
- *                   description: "King of the Hill" 时间戳
+ *                   description: 时间戳
  *                 market_cap:
  *                   type: number
  *                   description: 市值
