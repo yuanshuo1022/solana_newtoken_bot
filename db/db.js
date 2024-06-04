@@ -8,6 +8,7 @@ const pool = mysql.createPool({
   port: DB_port,
   password: DB_password,
   database: DB_database,
+  charset: 'utf8mb4',
   autoReconnect: true, // 启用自动重连
   reconnectInterval: 5000 // 重连间隔
 });
@@ -28,3 +29,8 @@ pool.on('error', (err) => {
     console.error('Unknown error:', err);
   }
 });
+
+
+module.exports = {
+  pool
+};

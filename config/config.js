@@ -9,6 +9,6 @@ module.exports = {
     DB_port:3306,
     DB_user: 'root',
     DB_password: '123456',
-    DB_database: 'sol_newtoken',
+    DB_database: 'newtoken',
 
 };

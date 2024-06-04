@@ -50,7 +50,7 @@ async function getTokenMetadataInfo(connection, tokenMintAddress) {
             decimals: res.decimals,
             isInitialized: res.isInitialized,
         }
-        const tokenInfo = JSON.parse(data)
+        const tokenInfo = JSON.stringify(data)
         return tokenInfo
     } catch (error) {
         console.error('Error fetching token metadata:', error);

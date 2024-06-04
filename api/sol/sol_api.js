@@ -12,7 +12,9 @@ app.use(express.json());
     try {
         const SolDealService = await initializeSolDeal();
         const monitorService = await initMonitor()
-        monitorService.monitor_pump_newtoken()
+        monitorService.monitor_raydium_newpool()
+        // monitorService.monitor_pump_newtoken()
+        // monitorService.test_increase() //test
         //通过代币地址获取代币价格 JUPTER
         app.get('/price', async (req, res) => {
             try {
@@ -187,6 +189,7 @@ app.use(express.json());
         process.exit(1); // Exit the process with a failure code
     }
 })();
+
 
 // 全局处理未捕获的异常
 process.on('uncaughtException', (error) => {
