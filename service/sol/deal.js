@@ -4,6 +4,7 @@ const bs58 = require('bs58');
 const spl_token = require('@solana/spl-token')
 const ConnectRPC = require('./connect');
 const SolUtils = require('../../utils/blackchain/sol/sol_utils');
+const pumpUtils=require('../../utils/blackchain/sol/pumpswap')
 const CommonUtils = require('../../utils/common/common');
 const transactionSenderAndConfirmationWaiter = require("../../utils/blackchain/sol/transactionSender")
 const getSignature = require("../../utils/blackchain/sol/getSignature")
@@ -246,16 +247,31 @@ async function initializeSolDeal() {
                     method: 'get',
                     maxBodyLength: Infinity,
                     url: `https://client-api-2-74b1891ee9f9.herokuapp.com/coins/${ids}`,
-                    headers: { },
+                    headers: {},
                     timeout: 3000
-                  };
+                };
                 const data = await CommonUtils.fetchWithRetry(config)
                 return data;
-            }catch (error) {
+            } catch (error) {
                 console.log(error)
             }
         }
-
+        //购买pump代币
+        async pumpBuyToken(params) {
+            const { privateKey, ids, solAmount, priorityFeeInSol, slippageDecimal } = params;
+            const paraminfo = { ids: ids };
+            const coinData = await this.getPumpTokenInfo(paraminfo);
+            const signature = await pumpUtils.pumpFunBuy(connection, coinData, privateKey, ids, solAmount, priorityFeeInSol, slippageDecimal);
+            return { signature: signature };
+        }
+        //出售pump代币
+        async pumpsellToken(params) {
+            const { privateKey, ids, tokenAmount, priorityFeeInSol, slippageDecimal } = params;
+            const paraminfo = { ids: ids };
+            const coinData = await this.getPumpTokenInfo(paraminfo);
+            const signature = await pumpUtils.pumpFunSell(connection, coinData, privateKey, ids, tokenAmount, priorityFeeInSol, slippageDecimal);
+            return { signature: signature };
+        }
     }
     return new sol_deal()
 }

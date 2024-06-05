@@ -965,4 +965,144 @@
  *                   description: 详细错误信息
  */
 
+
+/**
+ * @swagger
+ * /sol/pump-buy:
+ *   post:
+ *     summary: Pump Buy Token
+ *     description: 使用指定参数进行 Pump Buy Token 操作
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               privateKey:
+ *                 type: string
+ *                 description: 用户的私钥
+ *                 example: '3b6d...2e5c'
+ *               ids:
+ *                 type: string
+ *                 description: 代币地址
+ *                 example: 'So11111111111111111111111111111111111111112'
+ *               solAmount:
+ *                 type: number
+ *                 description: SOL 数量
+ *                 example: 1.0
+ *               priorityFeeInSol:
+ *                 type: number
+ *                 description: 优先费用，单位为 SOL
+ *                 example: 0.001
+ *               slippageDecimal:
+ *                 type: number
+ *                 description: 滑点
+ *                 example: 0.25
+ *     responses:
+ *       200:
+ *         description: 成功进行 Pump Buy Token 操作
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 signatrue:
+ *                   type: string
+ *                   description: 交易签名
+ *                   example: '5KQ...sdf'
+ *       400:
+ *         description: 请求参数错误
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   description: 错误信息
+ *       500:
+ *         description: 内部服务器错误
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   description: 错误信息
+ *                 details:
+ *                   type: string
+ *                   description: 错误详情
+ */
+
+/**
+ * @swagger
+ * /sol/pump-sell:
+ *   post:
+ *     summary: Pump Sell Token
+ *     description: 使用指定参数进行 Pump Sell Token 操作
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               privateKey:
+ *                 type: string
+ *                 description: 用户的私钥
+ *                 example: '3b6d...2e5c'
+ *               ids:
+ *                 type: string
+ *                 description: 代币地址
+ *                 example: 'So11111111111111111111111111111111111111112'
+ *               tokenAmount:
+ *                 type: number
+ *                 description: 代币数量
+ *                 example: 10.0
+ *               priorityFeeInSol:
+ *                 type: number
+ *                 description: 优先费用，单位为 SOL
+ *                 example: 0.001
+ *               slippageDecimal:
+ *                 type: number
+ *                 description: 滑点
+ *                 example: 0.25
+ *     responses:
+ *       200:
+ *         description: 成功进行 Pump Sell Token 操作
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 signatrue:
+ *                   type: string
+ *                   description: 交易签名
+ *                   example: '5KQ...sdf'
+ *       400:
+ *         description: 请求参数错误
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   description: 错误信息
+ *       500:
+ *         description: 内部服务器错误
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   description: 错误信息
+ *                 details:
+ *                   type: string
+ *                   description: 错误详情
+ */
 module.exports = {}; // 导出一个空对象以确保正确引入

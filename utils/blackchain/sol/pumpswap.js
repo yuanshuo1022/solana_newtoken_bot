@@ -20,22 +20,26 @@ const {
     PUMP_FUN_ACCOUNT,
     PUMP_FUN_PROGRAM,
     ASSOC_TOKEN_ACC_PROG
-} = require('./constants');
+} = require('./pupmswapUtils/constants');
+const CommonUtils=require('../../common/common')
+const SolUtils=require('./sol_utils')
+const getSignature =require('./getSignature')
+const transactionSenderAndConfirmationWaiter = require("./transactionSender")
 
 /**
  * 购买交易函数
- * @param {TransactionMode} transactionMode - 交易模式（执行或模拟）
  * @param {string} payerPrivateKey - 付款人的私钥
  * @param {string} mintStr - 代币的 mint 地址
  * @param {number} solIn - 输入的 SOL 数量
  * @param {number} [priorityFeeInSol=0] - 优先费用（可选）
  * @param {number} [slippageDecimal=0.25] - 滑点百分比（可选）
  */
-export async function pumpFunBuy(connection, coinData, transactionMode, payerPrivateKey, mintStr, solIn, priorityFeeInSol = 0, slippageDecimal = 0.25) {
+const ENDPOINT_SOL = JSON.parse(process.env.ENDPOINT_SOL) //PRC
+
+ async function pumpFunBuy(connection, coinData, payerPrivateKey, mintStr, solIn, priorityFeeInSol = 0, slippageDecimal = 0.25) {
     try {
         // 创建与 Solana 主网的连接
         // const connection = new Connection(clusterApiUrl("mainnet-beta"), 'confirmed');
-
         // // 获取代币数据
         // const coinData = await getCoinData(mintStr);
         // if (!coinData) {
@@ -45,6 +49,7 @@ export async function pumpFunBuy(connection, coinData, transactionMode, payerPri
 
         // 从私钥获取付款人的密钥对
         const payer = await getKeyPairFromPrivateKey(payerPrivateKey);
+        console.log("payer: ",payer)
         const owner = payer.publicKey;
         const mint = new PublicKey(mintStr);
 
@@ -110,23 +115,37 @@ export async function pumpFunBuy(connection, coinData, transactionMode, payerPri
 
         // 创建并发送交易
         const transaction = await createTransaction(connection, txBuilder.instructions, payer.publicKey, priorityFeeInSol);
-        //模拟交易
-        const { value: simulatedTransactionResponse } = await connection.simulateTransaction(transaction, {
-            replaceRecentBlockhash: true,
-            commitment: "processed",
-        })
-        const { err, logs } = simulatedTransactionResponse;
-        if (err) {
-            console.error("Simulation Error:");
-            console.error({ err, logs });
-            return { err, logs };
-        }
-        //发送交易
-        const signature = await sendAndConfirmTransactionWrapper(connection, transaction, [payer]);
-        console.log('Buy transaction confirmed:', signature);
+         //序列化参数
+        //  const swapTransactionBuf = Buffer.from(transactionbuy, 'base64');
+        //  var transaction = VersionedTransaction.deserialize(swapTransactionBuf);
+         const blockhash = transaction?.recentBlockhash;
+         //签名交易 sign the transaction
+         transaction.sign(payer);
+        console.log("transaction",transaction)
+         
+         const signatrue = await getSignature(transaction)
+         console.log("signatrue", signatrue)
+         //验证交易是否合法
+         const { value: simulatedTransactionResponse } = await connection.simulateTransaction(transaction)
+         const { err, logs } = simulatedTransactionResponse;
 
-
-
+         if (err) {
+             console.error("Simulation Error:");
+             console.error({ err, logs });
+             return { err, logs };
+         }
+         //反序列化交易 Execute the transaction
+         const rawTransaction = transaction.serialize()
+         const blockhashWithExpiryBlockHeight = {
+             blockhash,
+             lastValidBlockHeight: transaction?.lastValidBlockHeight,
+         }
+         const serializedTransaction = Buffer.from(rawTransaction);
+         //提交执行交易
+         console.log('开始confirmTransaction：');
+       const  txid = await transactionSenderAndConfirmationWaiter({ connection, serializedTransaction, blockhashWithExpiryBlockHeight });
+       console.log("txid",txid)
+       return txid
     } catch (error) {
         console.log(error);
     }
@@ -134,24 +153,15 @@ export async function pumpFunBuy(connection, coinData, transactionMode, payerPri
 
 /**
  * 出售交易函数
- * @param {TransactionMode} transactionMode - 交易模式（执行或模拟）
  * @param {string} payerPrivateKey - 付款人的私钥
  * @param {string} mintStr - 代币的 mint 地址
  * @param {number} tokenBalance - 输入的代币余额
  * @param {number} [priorityFeeInSol=0] - 优先费用（可选）
  * @param {number} [slippageDecimal=0.25] - 滑点百分比（可选）
  */
-export async function pumpFunSell(transactionMode, payerPrivateKey, mintStr, tokenBalance, priorityFeeInSol = 0, slippageDecimal = 0.25) {
+ async function pumpFunSell(connection, coinData,payerPrivateKey, mintStr, tokenBalance, priorityFeeInSol = 0, slippageDecimal = 0.25) {
     try {
-        // 创建与 Solana 主网的连接
-        const connection = new Connection(clusterApiUrl("mainnet-beta"), 'confirmed');
-
-        // 获取代币数据
-        const coinData = await getCoinData(mintStr);
-        if (!coinData) {
-            console.error('Failed to retrieve coin data...');
-            return;
-        }
+  
 
         // 从私钥获取付款人的密钥对
         const payer = await getKeyPairFromPrivateKey(payerPrivateKey);
@@ -212,25 +222,42 @@ export async function pumpFunSell(transactionMode, payerPrivateKey, mintStr, tok
         });
         txBuilder.add(instruction);
 
-        // 创建并发送交易
-        const transaction = await createTransaction(connection, txBuilder.instructions, payer.publicKey, priorityFeeInSol);
-        //模拟交易
-        const { value: simulatedTransactionResponse } = await connection.simulateTransaction(transaction, {
-            replaceRecentBlockhash: true,
-            commitment: "processed",
-        })
-        const { err, logs } = simulatedTransactionResponse;
-
-        if (err) {
-            console.error("Simulation Error:");
-            console.error({ err, logs });
-            return { err, logs };
-        }
-        //发送交易
-        const signature = await sendAndConfirmTransactionWrapper(connection, transaction, [payer]);
-        console.log('Sell transaction confirmed:', signature);
+           // 创建并发送交易
+           const transaction = await createTransaction(connection, txBuilder.instructions, payer.publicKey, priorityFeeInSol);
+           //序列化参数
+          //  const swapTransactionBuf = Buffer.from(transactionbuy, 'base64');
+          //  var transaction = VersionedTransaction.deserialize(swapTransactionBuf);
+           const blockhash = transaction?.recentBlockhash;
+           //签名交易 sign the transaction
+           transaction.sign(payer);
+          console.log("transaction",transaction)
+           
+           const signatrue = await getSignature(transaction)
+           console.log("signatrue", signatrue)
+           //验证交易是否合法
+           const { value: simulatedTransactionResponse } = await connection.simulateTransaction(transaction)
+           const { err, logs } = simulatedTransactionResponse;
+  
+           if (err) {
+               console.error("Simulation Error:");
+               console.error({ err, logs });
+               return { err, logs };
+           }
+           //反序列化交易 Execute the transaction
+           const rawTransaction = transaction.serialize()
+           const blockhashWithExpiryBlockHeight = {
+               blockhash,
+               lastValidBlockHeight: transaction?.lastValidBlockHeight,
+           }
+           const serializedTransaction = Buffer.from(rawTransaction);
+           //提交执行交易
+           console.log('开始confirmTransaction：');
+         const  txid = await transactionSenderAndConfirmationWaiter({ connection, serializedTransaction, blockhashWithExpiryBlockHeight });
+         console.log("txid",txid)
+         return txid
 
     } catch (error) {
         console.log(error);
     }
 }
+module.exports={pumpFunBuy,pumpFunSell}

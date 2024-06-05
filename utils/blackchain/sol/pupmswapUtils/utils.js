@@ -40,7 +40,9 @@ async function createTransaction(connection, instructions, payer, priorityFeeInS
     transaction.add(...instructions);
 
     transaction.feePayer = payer;
-    transaction.recentBlockhash = (await connection.getRecentBlockhash()).blockhash;
+    const BlockhashWithExpiryBlockHeight=await connection.getLatestBlockhash()
+    transaction.recentBlockhash = BlockhashWithExpiryBlockHeight.blockhash
+    transaction.lastValidBlockHeight=BlockhashWithExpiryBlockHeight.lastValidBlockHeight
     return transaction;
 }
 

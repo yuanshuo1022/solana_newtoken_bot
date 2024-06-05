@@ -183,6 +183,38 @@ app.use(express.json());
                 }
             }
         });
+        //购买pump代币
+        app.post('/pump-buy', async (req, res) => {
+            try {
+                const { privateKey, ids, solAmount, priorityFeeInSol, slippageDecimal } = req.body;
+                if (!privateKey || !ids || solAmount === undefined || priorityFeeInSol === undefined || slippageDecimal === undefined) {
+                    return res.status(400).json({ error: 'Missing required parameters' });
+                }
+        
+                const params = { privateKey, ids, solAmount, priorityFeeInSol, slippageDecimal };
+                const data = await SolDealService.pumpBuyToken(params);
+                res.status(200).json(data);
+            } catch (error) {
+                console.error('Error performing pump buy:', error);
+                res.status(500).json({ error: 'Internal Server Error', details: error.message });
+            }
+        });
+        //出售pump代币
+        app.post('/pump-sell', async (req, res) => {
+            try {
+                const { privateKey, ids, tokenAmount, priorityFeeInSol, slippageDecimal } = req.body;
+                if (!privateKey || !ids || tokenAmount === undefined || priorityFeeInSol === undefined || slippageDecimal === undefined) {
+                    return res.status(400).json({ error: 'Missing required parameters' });
+                }
+        
+                const params = { privateKey, ids, tokenAmount, priorityFeeInSol, slippageDecimal };
+                const data = await SolDealService.pumpsellToken(params);
+                res.status(200).json(data);
+            } catch (error) {
+                console.error('Error performing pump sell:', error);
+                res.status(500).json({ error: 'Internal Server Error', details: error.message });
+            }
+        });
 
     } catch (error) {
         console.error('Failed to initialize SolDealService:', error);
@@ -202,7 +234,7 @@ process.on('uncaughtException', (error) => {
 process.on('unhandledRejection', (reason, promise) => {
     console.error('Unhandled Rejection:', reason);
     // 你可以选择关闭进程，或在这里处理其他清理工作
-    process.exit(1);
+    // process.exit(1);
 });
 
 module.exports = app

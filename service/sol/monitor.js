@@ -16,6 +16,7 @@ const ENDPOINT_SOL = JSON.parse(process.env.ENDPOINT_SOL) //PRC
 const SOL_RAYDIUM_PUBLIC_KEY = process.env.SOL_RAYDIUM_PUBLIC_KEY //RAYDIUM
 const SOL_Token_Address = process.env.SOL_Token_Address
 const INSTRUCTION_NAME = "initialize2";
+const PUMP_INIT_MINT_NAME="InitializeMint2"
 async function initMonitor() {
 
     const connection = await ConnectRPC.connection(ENDPOINT_SOL);
@@ -33,7 +34,7 @@ async function initMonitor() {
                     TOKEN_PROGRAM_ID,
                     async ({ logs, err, signature }) => {
                         if (err) return;
-                        if (logs && logs.some(log => log.includes("InitializeMint2"))) {
+                        if (logs && logs.some(log => log.includes(PUMP_INIT_MINT_NAME))) {
                             //解析交易
                             if (lastSignature == signature) {
                                 return
