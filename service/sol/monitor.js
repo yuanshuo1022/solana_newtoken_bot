@@ -9,7 +9,7 @@ const { PushTokenKlines } = require("../../db/pump_kline")
 const { PushRaydiumNewPoolData } = require("../../db/insert_raydium_newpool")
 const { getMintAndTimestamp, insertPriceData } = require("../../db/test_mint_increase")
 const { PublicKey } = require('@solana/web3.js');
-const bs58 = require('bs58');
+const webSocketService = require('../../ws/webSocketService');
 dotenv.config();
 const SOL_PUMP_PUBLIC_KEY = process.env.SOL_PUMP_PUBLIC_KEY //PUMP
 const ENDPOINT_SOL = JSON.parse(process.env.ENDPOINT_SOL) //PRC
@@ -67,7 +67,8 @@ async function initMonitor() {
                 const infoKline = await solDealInstance.getPumpPrice(params)
                 // console.log(infoKline)
                 //TODO ws或者队列操作
-
+                const data = JSON.stringify({type:"pump_new_token",info});
+                webSocketService.broadcastMessage(data)
                 //数据库操作(批量插入)
                 await PushPumpNewTokenData(info);
                 await infoKline.forEach(data => PushTokenKlines(data));
@@ -144,10 +145,6 @@ async function initMonitor() {
                 const tokenInfo = JSON.parse(info)
                 //社交信息
                 const socialTokenMeta = await SolUtils.getTokenMetadata(connection, tokenMintAddress)
-                //ws或队列处理
-                // const jsonString = JSON.stringify(data);
-                // WssInstance.sendMessage(jsonString)
-                //数据库处理
                 let token_address = await CommonUtils.isEquals(tokenAAccount.toBase58(), SOL_Token_Address, tokenBAccount.toBase58(), tokenAAccount.toBase58())
                 const insert_info = {
                     token_address: token_address, //代币地址
@@ -167,6 +164,10 @@ async function initMonitor() {
                     website: socialTokenMeta.website,//website
                     is_pump: socialTokenMeta.is_pump,//是否是pump
                 }
+                //ws或队列处理
+                const data = JSON.stringify({type:"raydium_new_pool",insert_info});
+                webSocketService.broadcastMessage(data)
+                //数据库处理
                 await PushRaydiumNewPoolData(insert_info)
 
             } catch (error) {
