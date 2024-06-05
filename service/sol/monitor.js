@@ -9,6 +9,7 @@ const { PushTokenKlines } = require("../../db/pump_kline")
 const { PushRaydiumNewPoolData } = require("../../db/insert_raydium_newpool")
 const { getMintAndTimestamp, insertPriceData } = require("../../db/test_mint_increase")
 const { PublicKey } = require('@solana/web3.js');
+const bs58 = require('bs58');
 dotenv.config();
 const SOL_PUMP_PUBLIC_KEY = process.env.SOL_PUMP_PUBLIC_KEY //PUMP
 const ENDPOINT_SOL = JSON.parse(process.env.ENDPOINT_SOL) //PRC
@@ -16,6 +17,7 @@ const SOL_RAYDIUM_PUBLIC_KEY = process.env.SOL_RAYDIUM_PUBLIC_KEY //RAYDIUM
 const SOL_Token_Address = process.env.SOL_Token_Address
 const INSTRUCTION_NAME = "initialize2";
 async function initMonitor() {
+
     const connection = await ConnectRPC.connection(ENDPOINT_SOL);
     // 初始化 sol_deal 实例
     const solDealInstance = await initializeSolDeal();
@@ -37,7 +39,7 @@ async function initMonitor() {
                                 return
                             }
                             lastSignature = signature
-                            console.log("签名", signature)
+                            console.log("pump新币:", signature)
                             await this.PumpTranction(connection, signature)
                         }
                     },
@@ -76,21 +78,21 @@ async function initMonitor() {
 
 
         }
-       
+
         //监听raydium上加入流动性的代币池
         async monitor_raydium_newpool() {
-            console.log("监听raydium新池子")
+            console.log("------------监听raydium新池子----------------")
             connection.onLogs(
                 new PublicKey(SOL_RAYDIUM_PUBLIC_KEY),
                 async ({ logs, err, signature }) => {
                     if (err) return;
                     if (logs && logs.some(log => log.includes(INSTRUCTION_NAME))) {
-                       if (lastRaydiumPool==signature){
-                        return 
-                       }
-                       lastRaydiumPool=signature
-                        console.log("Signature来自'initialize2':", `${signature}`);
-                       await this.fetchRaydiumMints(signature);
+                        if (lastRaydiumPool == signature) {
+                            return
+                        }
+                        lastRaydiumPool = signature
+                        console.log("raydium新池子:", `${signature}`);
+                        await this.fetchRaydiumMints(signature);
                     }
                 },
                 "finalized"
@@ -126,31 +128,40 @@ async function initMonitor() {
                     { "Token": "B", "Account Public Key": tokenBAccount.toBase58() }
                 ];
                 console.table(displayData);
-                //获取代币信息
+                //池子信息
+                const accInfo = await connection.getParsedAccountInfo(poolState.lpMint);
+                const mintInfo = accInfo?.value?.data?.parsed?.info
+                const lpReserve = (poolState.lpReserve.toString(10) / Math.pow(10, mintInfo?.decimals))-1
+                const actualSupply = mintInfo?.supply / Math.pow(10, mintInfo?.decimals)
+                const burnPct = ((lpReserve - actualSupply) / lpReserve) * 100 //燃烧池子百分比
+                //代币信息
                 let tokenMintAddress = await CommonUtils.isEquals(tokenAAccount.toBase58(), SOL_Token_Address, new PublicKey(tokenBAccount.toBase58()), new PublicKey(tokenAAccount.toBase58()))
-                const poolBalance = await connection.getTokenAccountBalance(poolState.quoteVault, connection.commitment)
                 const info = await SolUtils.getTokenMetadataInfo(connection, tokenMintAddress)
-                console.log(info)
-                // await SolUtils.getTokenMetadata(connection,tokenMintAddress)
                 const tokenInfo = JSON.parse(info)
-                const data = {
-                    tokenAddress: tokenMintAddress,
-                    supply: tokenInfo.supply,
-                    decimals: tokenInfo.decimals,
-                    poolOpenTime: poolOpenTime,
-                    poolBalance: poolBalance.value.uiAmount
-                }
+                //社交信息
+                const socialTokenMeta = await SolUtils.getTokenMetadata(connection, tokenMintAddress)
                 //ws或队列处理
                 // const jsonString = JSON.stringify(data);
                 // WssInstance.sendMessage(jsonString)
                 //数据库处理
                 let token_address = await CommonUtils.isEquals(tokenAAccount.toBase58(), SOL_Token_Address, tokenBAccount.toBase58(), tokenAAccount.toBase58())
                 const insert_info = {
-                    token_address: token_address,
-                    pool_amount: data.poolBalance,
-                    pool_open_time: poolOpenTime,
-                    supply: data.supply,
-                    decimals: data.decimals
+                    token_address: token_address, //代币地址
+                    lp_address: poolState.lpMint?poolState.lpMint.toBase58():null, //lp地址
+                    pool_amount: lpReserve,       //流动性池储备
+                    pool_actual_supply: actualSupply, //实际流动性池储备
+                    pool_open_time: poolOpenTime,  //交易开始时间
+                    supply: tokenInfo.supply,       //代币供应量
+                    decimals: tokenInfo.decimals, //代币精度
+                    is_mint: tokenInfo.mintAuthority,  //是否有mint权限
+                    is_freeze: tokenInfo.freezeAccount,//是否有冻结权限
+                    burn_pct: burnPct,//burn百分比
+                    burn_amount: (lpReserve - actualSupply),//burn 数量
+                    twitter:socialTokenMeta.twitter, //twitter
+                    telegram:socialTokenMeta.telegram,//telegram
+                    discord:socialTokenMeta.discord,//discord
+                    website:socialTokenMeta.website,//website
+                    is_pump:socialTokenMeta.is_pump,//是否是pump
                 }
                 await PushRaydiumNewPoolData(insert_info)
 

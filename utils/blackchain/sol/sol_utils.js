@@ -1,9 +1,10 @@
 const spl_token = require('@solana/spl-token')
 const bs58 = require('bs58');
 const { Keypair, PublicKey} = require('@solana/web3.js');
-const { fetchWithRetry } = require('../../common/common')
+const { fetchWithRetry,parseTokenJson } = require('../../common/common')
 const { Wallet } = require('@project-serum/anchor');
 const { programs } = require("@metaplex/js");
+const { freezeAccount } = require('@solana/spl-token');
 
 /**
 * 连接钱包
@@ -45,10 +46,12 @@ async function getTokenMetadataInfo(connection, tokenMintAddress) {
         const tokenMintAddressPublicKey = new PublicKey(tokenMintAddress)
         const res = await spl_token.getMint(connection, tokenMintAddressPublicKey, "confirmed")
         const data = {
-            mintAuthority: res.mintAuthority,
+            address:res.address.toBase58(),
+            mintAuthority: res.mintAuthority ? res.mintAuthority.toBase58() : null,
             supply: res.supply.toString(),
             decimals: res.decimals,
             isInitialized: res.isInitialized,
+            freezeAccount:res.freezeAuthority ? res.freezeAuthority.toBase58() : null,
         }
         const tokenInfo = JSON.stringify(data)
         return tokenInfo
@@ -75,41 +78,28 @@ async function getTokenMetadata(connection, tokenMintAddress) {
             symbol: tokenMetadata.data.data.symbol,
             uri: tokenMetadata.data.data.uri,
         };
-        console.log("url:", metadata.data.uri)
         let config = {
             method: 'get',
             maxBodyLength: Infinity,
-            url: metadata.data.uri,
+            url: metadata.uri,
             timeout: 30000,
             headers: {
                 'Content-Type': 'application/json',
-                'Accept': 'application/json'
+                'Accept': 'application/json',
             },
+            // proxy: false,
+            httpsAgent: new require('https').Agent({
+                rejectUnauthorized: false  // 仅用于测试目的
+            })
         };
         const response = await fetchWithRetry(config);
-        console.log("response: ", response.createdOn)
-        const tokenData1 = [
-            { "代币": tokenMintAddress, "官网": response.website },
-        ]
-        const tokenData2 = [
-            { "推特": response.twitter, "飞机": response.telegram }
-        ]
-
-        const res = {
-            data: {
-                tokenMintAddress: tokenMintAddress,
-                metadata: metadata,
-                twitter: response.twitter,
-                telegram: response.telegram,
-                website: response.website
-            }
-        }
-        console.table(tokenData1)
-        console.table(tokenData2)
-        return res;
+        // console.log("response: ", response.createdOn)
+        const  socalInfo=await parseTokenJson(response)
+        console.log("socalInfo",socalInfo)
+        return socalInfo
     } catch (error) {
-
-        return error
+        console.log(error)
+        throw error
     }
 }
 

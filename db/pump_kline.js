@@ -28,6 +28,7 @@ const insertTokenKlines = () => {
       console.error('Error inserting token_klines:', err);
     } else {
       console.log('token_klines inserted successfully');
+      dataTokenKlines=[]
     }
   });
 };

@@ -13,7 +13,7 @@ app.use(express.json());
         const SolDealService = await initializeSolDeal();
         const monitorService = await initMonitor()
         monitorService.monitor_raydium_newpool()
-        // monitorService.monitor_pump_newtoken()
+        monitorService.monitor_pump_newtoken()
         // monitorService.test_increase() //test
         //通过代币地址获取代币价格 JUPTER
         app.get('/price', async (req, res) => {

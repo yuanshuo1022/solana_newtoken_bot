@@ -32,7 +32,7 @@ async function fetchWithRetry(config, maxRetries = 3, retryDelay = 1000) {
 */
 async function fetchResJson(url) {
     try {
-        console.log("请求url:",url)
+        console.log("请求url:", url)
         const response = await fetch(url);
         // 检查网络请求是否成功
         if (!response.ok) {
@@ -55,17 +55,24 @@ async function fetchResJson(url) {
 async function parseTokenJson(tokenJson) {
     let jsonData = {
     };
-    if (tokenJson.twitter) {
-        jsonData.twitter = tokenJson.twitter;
+    jsonData.is_pump = false;
+    if (tokenJson.createdOn && tokenJson.createdOn.includes("pump.fun")) {
+        jsonData.is_pump = true;
     }
-    if (tokenJson.telegram) {
-        jsonData.telegram = tokenJson.telegram;
+    if (tokenJson.twitter || tokenJson.X) {
+        jsonData.twitter = tokenJson.twitter || tokenJson.X;
     }
-    if (tokenJson.website) {
-        jsonData.website = tokenJson.website;
+    if (tokenJson.telegram || tokenJson.TG) {
+        jsonData.telegram = tokenJson.telegram || tokenJson.TG;
+    }
+    if (tokenJson.website || tokenJson.site) {
+        jsonData.website = tokenJson.website || tokenJson.site;
+    }
+    if (tokenJson.discord) {
+        jsonData.discord = tokenJson.discord;
     }
     // 解析JSON
-    const data = JSON.parse(jsonData);
+    const data = tokenJson;
 
     // 提取description中的URL
     const description = data.description;
@@ -82,6 +89,8 @@ async function parseTokenJson(tokenJson) {
                 console.log(`Telegram address: ${url}`);
             } else if (url.includes("x.com") || url.includes("twitter.com")) {
                 jsonData.twitter = url;
+            } else if (url.includes("discord.com")) {
+                jsonData.discord = url
             } else {
                 jsonData.website = url
             }
@@ -95,7 +104,7 @@ async function parseTokenJson(tokenJson) {
 * @param {T}  校验信息
 * @returns {T} 相等返回param1，不相等返回param2
 */
-async function isEquals(verifyInfo, conInfo,param1,param2) {
+async function isEquals(verifyInfo, conInfo, param1, param2) {
     if (verifyInfo == conInfo) {
         return param1;
     } else {
@@ -115,8 +124,10 @@ async function isEqualsAddress(Address1, Address2) {
     return false
 }
 
+
 module.exports =
-{   fetchWithRetry,
+{
+    fetchWithRetry,
     parseTokenJson,
     isEqualsAddress,
     isEquals,
