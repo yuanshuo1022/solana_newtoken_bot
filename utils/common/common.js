@@ -71,12 +71,14 @@ async function parseTokenJson(tokenJson) {
     if (tokenJson.discord) {
         jsonData.discord = tokenJson.discord;
     }
+
     // 解析JSON
     const data = tokenJson;
-
     // 提取description中的URL
     const description = data.description;
-
+    if(!description){
+        return jsonData;
+    }
     // 查找URL的正则表达式
     const urlRegex = /https?:\/\/\S+/g;
     const urls = description.match(urlRegex);

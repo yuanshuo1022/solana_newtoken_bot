@@ -31,8 +31,8 @@ const InsertPumpNewTokenData = () => {
 
 const PushPumpNewTokenData = (newData) => {
     dataBatch.push(newData);
-    if (dataBatch.length >= 100) {
-        console.log('数据长度超过100,开始插入');
+    if (dataBatch.length >= 50) {
+        console.log('数据长度超过50,开始插入');
         InsertPumpNewTokenData();
     }
 };

@@ -34,8 +34,8 @@ const insertTokenKlines = () => {
 };
 const PushTokenKlines = (newData) => {
   dataTokenKlines.push(newData);
-  if (dataTokenKlines.length >= 100) {
-    console.log('k数据长度超过100,开始插入');
+  if (dataTokenKlines.length >= 50) {
+    console.log('k数据长度超过50,开始插入');
     insertTokenKlines();
   }
 };

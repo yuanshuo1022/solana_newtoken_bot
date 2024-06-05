@@ -128,10 +128,14 @@ async function initMonitor() {
                     { "Token": "B", "Account Public Key": tokenBAccount.toBase58() }
                 ];
                 console.table(displayData);
+                //检查是否是与SOL代币组LP
+                if (tokenAAccount.toBase58() !== SOL_Token_Address && tokenBAccount.toBase58() !== SOL_Token_Address) {
+                    return;
+                }
                 //池子信息
                 const accInfo = await connection.getParsedAccountInfo(poolState.lpMint);
                 const mintInfo = accInfo?.value?.data?.parsed?.info
-                const lpReserve = (poolState.lpReserve.toString(10) / Math.pow(10, mintInfo?.decimals))-1
+                const lpReserve = (poolState.lpReserve.toString(10) / Math.pow(10, mintInfo?.decimals)) - 1
                 const actualSupply = mintInfo?.supply / Math.pow(10, mintInfo?.decimals)
                 const burnPct = ((lpReserve - actualSupply) / lpReserve) * 100 //燃烧池子百分比
                 //代币信息
@@ -147,7 +151,7 @@ async function initMonitor() {
                 let token_address = await CommonUtils.isEquals(tokenAAccount.toBase58(), SOL_Token_Address, tokenBAccount.toBase58(), tokenAAccount.toBase58())
                 const insert_info = {
                     token_address: token_address, //代币地址
-                    lp_address: poolState.lpMint?poolState.lpMint.toBase58():null, //lp地址
+                    lp_address: poolState.lpMint ? poolState.lpMint.toBase58() : null, //lp地址
                     pool_amount: lpReserve,       //流动性池储备
                     pool_actual_supply: actualSupply, //实际流动性池储备
                     pool_open_time: poolOpenTime,  //交易开始时间
@@ -157,11 +161,11 @@ async function initMonitor() {
                     is_freeze: tokenInfo.freezeAccount,//是否有冻结权限
                     burn_pct: burnPct,//burn百分比
                     burn_amount: (lpReserve - actualSupply),//burn 数量
-                    twitter:socialTokenMeta.twitter, //twitter
-                    telegram:socialTokenMeta.telegram,//telegram
-                    discord:socialTokenMeta.discord,//discord
-                    website:socialTokenMeta.website,//website
-                    is_pump:socialTokenMeta.is_pump,//是否是pump
+                    twitter: socialTokenMeta.twitter, //twitter
+                    telegram: socialTokenMeta.telegram,//telegram
+                    discord: socialTokenMeta.discord,//discord
+                    website: socialTokenMeta.website,//website
+                    is_pump: socialTokenMeta.is_pump,//是否是pump
                 }
                 await PushRaydiumNewPoolData(insert_info)
 
@@ -173,7 +177,7 @@ async function initMonitor() {
         }
 
 
-        //判断代币数据涨幅
+        //判断代币数据涨幅 test
         async test_increase() {
             try {
                 const mintAddresses = await getMintAndTimestamp();
