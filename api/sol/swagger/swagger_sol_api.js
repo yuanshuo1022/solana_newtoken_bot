@@ -970,8 +970,9 @@
  * @swagger
  * /sol/pump-buy:
  *   post:
- *     summary: Pump Buy Token
- *     description: 使用指定参数进行 Pump Buy Token 操作
+ *     tags: [PUMP]
+ *     summary: Pump 购买代币
+ *     description: 使用指定参数进行 Pump 购买代币 操作
  *     requestBody:
  *       required: true
  *       content:
@@ -1040,8 +1041,9 @@
  * @swagger
  * /sol/pump-sell:
  *   post:
- *     summary: Pump Sell Token
- *     description: 使用指定参数进行 Pump Sell Token 操作
+ *     tags: [PUMP]
+ *     summary: Pump 出售代币
+ *     description: 使用指定参数进行PUMP平台出售代币 操作
  *     requestBody:
  *       required: true
  *       content:
