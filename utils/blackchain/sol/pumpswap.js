@@ -20,7 +20,6 @@ const {
     PUMP_FUN_PROGRAM,
     ASSOC_TOKEN_ACC_PROG
 } = require('./pupmswapUtils/constants');
-const CommonUtils = require('../../common/common')
 const SolUtils = require('./sol_utils')
 const getSignature = require('./getSignature')
 const transactionSenderAndConfirmationWaiter = require("./transactionSender")
