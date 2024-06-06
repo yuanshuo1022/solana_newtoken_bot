@@ -21,9 +21,9 @@ const {
     PUMP_FUN_PROGRAM,
     ASSOC_TOKEN_ACC_PROG
 } = require('./pupmswapUtils/constants');
-const CommonUtils=require('../../common/common')
-const SolUtils=require('./sol_utils')
-const getSignature =require('./getSignature')
+const CommonUtils = require('../../common/common')
+const SolUtils = require('./sol_utils')
+const getSignature = require('./getSignature')
 const transactionSenderAndConfirmationWaiter = require("./transactionSender")
 
 /**
@@ -36,7 +36,7 @@ const transactionSenderAndConfirmationWaiter = require("./transactionSender")
  */
 const ENDPOINT_SOL = JSON.parse(process.env.ENDPOINT_SOL) //PRC
 
- async function pumpFunBuy(connection, coinData, payerPrivateKey, mintStr, solIn, priorityFeeInSol = 0, slippageDecimal = 0.25) {
+async function pumpFunBuy(connection, coinData, payerPrivateKey, mintStr, solIn, priorityFeeInSol = 0, slippageDecimal = 0.25) {
     try {
         // 创建与 Solana 主网的连接
         // const connection = new Connection(clusterApiUrl("mainnet-beta"), 'confirmed');
@@ -49,7 +49,7 @@ const ENDPOINT_SOL = JSON.parse(process.env.ENDPOINT_SOL) //PRC
 
         // 从私钥获取付款人的密钥对
         const payer = await getKeyPairFromPrivateKey(payerPrivateKey);
-        console.log("payer: ",payer)
+        console.log("payer: ", payer)
         const owner = payer.publicKey;
         const mint = new PublicKey(mintStr);
 
@@ -115,37 +115,59 @@ const ENDPOINT_SOL = JSON.parse(process.env.ENDPOINT_SOL) //PRC
 
         // 创建并发送交易
         const transaction = await createTransaction(connection, txBuilder.instructions, payer.publicKey, priorityFeeInSol);
-         //序列化参数
+        //序列化参数
         //  const swapTransactionBuf = Buffer.from(transactionbuy, 'base64');
         //  var transaction = VersionedTransaction.deserialize(swapTransactionBuf);
-         const blockhash = transaction?.recentBlockhash;
-         //签名交易 sign the transaction
-         transaction.sign(payer);
-        console.log("transaction",transaction)
-         
-         const signatrue = await getSignature(transaction)
-         console.log("signatrue", signatrue)
-         //验证交易是否合法
-         const { value: simulatedTransactionResponse } = await connection.simulateTransaction(transaction)
-         const { err, logs } = simulatedTransactionResponse;
+        const blockhash = transaction?.recentBlockhash;
+        //签名交易 sign the transaction
+        transaction.sign(payer);
+        console.log("transaction", transaction)
 
-         if (err) {
-             console.error("Simulation Error:");
-             console.error({ err, logs });
-             return { err, logs };
-         }
-         //反序列化交易 Execute the transaction
-         const rawTransaction = transaction.serialize()
-         const blockhashWithExpiryBlockHeight = {
-             blockhash,
-             lastValidBlockHeight: transaction?.lastValidBlockHeight,
-         }
-         const serializedTransaction = Buffer.from(rawTransaction);
-         //提交执行交易
-         console.log('开始confirmTransaction：');
-       const  txid = await transactionSenderAndConfirmationWaiter({ connection, serializedTransaction, blockhashWithExpiryBlockHeight });
-       console.log("txid",txid)
-       return txid
+        const signatrue = await getSignature(transaction)
+        console.log("signatrue", signatrue)
+        //验证交易是否合法
+        const { value: simulatedTransactionResponse } = await connection.simulateTransaction(transaction)
+        const { err, logs } = simulatedTransactionResponse;
+
+        if (err) {
+            console.error("Simulation Error:");
+            console.error({ err, logs });
+            return { err, logs };
+        }
+        //反序列化交易 Execute the transaction
+        const rawTransaction = transaction.serialize()
+        const blockhashWithExpiryBlockHeight = {
+            blockhash,
+            lastValidBlockHeight: transaction?.lastValidBlockHeight,
+        }
+        const serializedTransaction = Buffer.from(rawTransaction);
+        //提交执行交易
+        console.log('开始confirmTransaction：');
+        const txid = await transactionSenderAndConfirmationWaiter({ connection, serializedTransaction, blockhashWithExpiryBlockHeight });
+        if (txid) {
+            const postTokenBlance = await SolUtils.findUiTokenAmount(payer.publicKey.toString(), mintStr, txSwap.meta.postTokenBalances)
+            const preTokenBalnace = await SolUtils.findUiTokenAmount(payer.publicKey.toString(), mintStr, txSwap.meta.preTokenBalances)
+            const postBalance = txSwap.meta.postBalances[0]
+            const preBlance = txSwap.meta.preBalances[0]
+            const solAmount = postBalance - preBlance
+            const tokenAmount = postTokenBlance.uiAmount - preTokenBalnace.uiAmount
+            const res = {
+                url: 'https://solscan.io/tx/' + signatrue,
+                transactionHash: signatrue, //交易hash
+                gasfee: txid.meta.fee,
+                postTokenBlance: postTokenBlance,
+                preTokenBalnace: preTokenBalnace,
+                solAmount: solAmount / LAMPORTS_PER_SOL,
+                tokenAmount: tokenAmount,
+                txid: txid,
+                err: txSwap.meta.err
+            }
+            return res
+        }
+        const res = {
+            err: "sell fail"
+        }
+        return res
     } catch (error) {
         console.log(error);
     }
@@ -159,9 +181,9 @@ const ENDPOINT_SOL = JSON.parse(process.env.ENDPOINT_SOL) //PRC
  * @param {number} [priorityFeeInSol=0] - 优先费用（可选）
  * @param {number} [slippageDecimal=0.25] - 滑点百分比（可选）
  */
- async function pumpFunSell(connection, coinData,payerPrivateKey, mintStr, tokenBalance, priorityFeeInSol = 0, slippageDecimal = 0.25) {
+async function pumpFunSell(connection, coinData, payerPrivateKey, mintStr, tokenBalance, priorityFeeInSol = 0, slippageDecimal = 0.25) {
     try {
-  
+
 
         // 从私钥获取付款人的密钥对
         const payer = await getKeyPairFromPrivateKey(payerPrivateKey);
@@ -222,42 +244,66 @@ const ENDPOINT_SOL = JSON.parse(process.env.ENDPOINT_SOL) //PRC
         });
         txBuilder.add(instruction);
 
-           // 创建并发送交易
-           const transaction = await createTransaction(connection, txBuilder.instructions, payer.publicKey, priorityFeeInSol);
-           //序列化参数
-          //  const swapTransactionBuf = Buffer.from(transactionbuy, 'base64');
-          //  var transaction = VersionedTransaction.deserialize(swapTransactionBuf);
-           const blockhash = transaction?.recentBlockhash;
-           //签名交易 sign the transaction
-           transaction.sign(payer);
-          console.log("transaction",transaction)
-           
-           const signatrue = await getSignature(transaction)
-           console.log("signatrue", signatrue)
-           //验证交易是否合法
-           const { value: simulatedTransactionResponse } = await connection.simulateTransaction(transaction)
-           const { err, logs } = simulatedTransactionResponse;
-  
-           if (err) {
-               console.error("Simulation Error:");
-               console.error({ err, logs });
-               return { err, logs };
-           }
-           //反序列化交易 Execute the transaction
-           const rawTransaction = transaction.serialize()
-           const blockhashWithExpiryBlockHeight = {
-               blockhash,
-               lastValidBlockHeight: transaction?.lastValidBlockHeight,
-           }
-           const serializedTransaction = Buffer.from(rawTransaction);
-           //提交执行交易
-           console.log('开始confirmTransaction：');
-         const  txid = await transactionSenderAndConfirmationWaiter({ connection, serializedTransaction, blockhashWithExpiryBlockHeight });
-         console.log("txid",txid)
-         return txid
+        // 创建并发送交易
+        const transaction = await createTransaction(connection, txBuilder.instructions, payer.publicKey, priorityFeeInSol);
+        //序列化参数
+        //  const swapTransactionBuf = Buffer.from(transactionbuy, 'base64');
+        //  var transaction = VersionedTransaction.deserialize(swapTransactionBuf);
+        const blockhash = transaction?.recentBlockhash;
+        //签名交易 sign the transaction
+        transaction.sign(payer);
+        console.log("transaction", transaction)
+
+        const signatrue = await getSignature(transaction)
+        console.log("signatrue", signatrue)
+        //验证交易是否合法
+        const { value: simulatedTransactionResponse } = await connection.simulateTransaction(transaction)
+        const { err, logs } = simulatedTransactionResponse;
+
+        if (err) {
+            console.error("Simulation Error:");
+            console.error({ err, logs });
+            return { err, logs };
+        }
+        //反序列化交易 Execute the transaction
+        const rawTransaction = transaction.serialize()
+        const blockhashWithExpiryBlockHeight = {
+            blockhash,
+            lastValidBlockHeight: transaction?.lastValidBlockHeight,
+        }
+        const serializedTransaction = Buffer.from(rawTransaction);
+        //提交执行交易
+        console.log('开始confirmTransaction：');
+        const txid = await transactionSenderAndConfirmationWaiter({ connection, serializedTransaction, blockhashWithExpiryBlockHeight });
+        console.log("txid", txid)
+
+        if (txid) {
+            const postTokenBlance = await SolUtils.findUiTokenAmount(payer.publicKey.toString(), mintStr, txSwap.meta.postTokenBalances)
+            const preTokenBalnace = await SolUtils.findUiTokenAmount(payer.publicKey.toString(), mintStr, txSwap.meta.preTokenBalances)
+            const postBalance = txSwap.meta.postBalances[0]
+            const preBlance = txSwap.meta.preBalances[0]
+            const solAmount = postBalance - preBlance
+            const tokenAmount = postTokenBlance.uiAmount - preTokenBalnace.uiAmount
+            const res = {
+                url: 'https://solscan.io/tx/' + signatrue,
+                transactionHash: signatrue, //交易hash
+                gasfee: txid.meta.fee,
+                postTokenBlance: postTokenBlance,
+                preTokenBalnace: preTokenBalnace,
+                solAmount: solAmount / LAMPORTS_PER_SOL,
+                tokenAmount: tokenAmount,
+                txid: txid,
+                err: txSwap.meta.err
+            }
+            return res
+        }
+        const res = {
+            err: "sell fail"
+        }
+        return res
 
     } catch (error) {
         console.log(error);
     }
 }
-module.exports={pumpFunBuy,pumpFunSell}
+module.exports = { pumpFunBuy, pumpFunSell }
