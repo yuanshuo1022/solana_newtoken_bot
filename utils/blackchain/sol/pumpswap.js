@@ -4,7 +4,6 @@ const {
     PublicKey,
     Transaction,
     TransactionInstruction,
-    clusterApiUrl
 } = require('@solana/web3.js');
 const {
     getAssociatedTokenAddress,
@@ -34,7 +33,7 @@ const transactionSenderAndConfirmationWaiter = require("./transactionSender")
  * @param {number} [priorityFeeInSol=0] - 优先费用（可选）
  * @param {number} [slippageDecimal=0.25] - 滑点百分比（可选）
  */
-const ENDPOINT_SOL = JSON.parse(process.env.ENDPOINT_SOL) //PRC
+// const ENDPOINT_SOL = JSON.parse(process.env.ENDPOINT_SOL) //PRC
 
 async function pumpFunBuy(connection, coinData, payerPrivateKey, mintStr, solIn, priorityFeeInSol = 0, slippageDecimal = 0.25) {
     try {
