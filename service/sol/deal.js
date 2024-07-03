@@ -230,7 +230,8 @@ async function initializeSolDeal() {
                 let config = {
                     method: 'GET',
                     maxBodyLength: Infinity,
-                    url: `https://client-api-2-74b1891ee9f9.herokuapp.com/candlesticks/${ids}`,
+                    url :`https://frontend-api.pump.fun/candlesticks/${ids}`
+                    // url: `https://client-api-2-74b1891ee9f9.herokuapp.com/candlesticks/${ids}`,
                 };
                 const data = await CommonUtils.fetchWithRetry(config)
                 return data;
@@ -246,7 +247,8 @@ async function initializeSolDeal() {
                 let config = {
                     method: 'get',
                     maxBodyLength: Infinity,
-                    url: `https://client-api-2-74b1891ee9f9.herokuapp.com/coins/${ids}`,
+                    url:`https://frontend-api.pump.fun/coins/${ids}`,
+                    // url: `https://client-api-2-74b1891ee9f9.herokuapp.com/coins/${ids}`,
                     headers: {},
                     timeout: 3000
                 };

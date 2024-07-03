@@ -182,7 +182,6 @@ async function pumpFunBuy(connection, coinData, payerPrivateKey, mintStr, solIn,
 async function pumpFunSell(connection, coinData, payerPrivateKey, mintStr, tokenBalance, priorityFeeInSol = 0, slippageDecimal = 0.25) {
     try {
 
-
         // 从私钥获取付款人的密钥对
         const payer = await getKeyPairFromPrivateKey(payerPrivateKey);
         const owner = payer.publicKey;
@@ -209,9 +208,10 @@ async function pumpFunSell(connection, coinData, payerPrivateKey, mintStr, token
         } else {
             tokenAccount = tokenAccountAddress;
         }
-
+        const tokenDecimals= SolUtils.getTokenMetadataDecimals(connection,mintStr)
+        const tokenAmount=tokenBalance*Math.pow(10,tokenDecimals)
         // 计算包含滑点的最小 SOL 输出
-        const minSolOutput = Math.floor(tokenBalance * (1 - slippageDecimal) * coinData["virtual_sol_reserves"] / coinData["virtual_token_reserves"]);
+        const minSolOutput = Math.floor(tokenAmount * (1 - slippageDecimal) * coinData["virtual_sol_reserves"] / coinData["virtual_token_reserves"]);
 
         const keys = [
             { pubkey: GLOBAL, isSigner: false, isWritable: false },
@@ -231,7 +231,7 @@ async function pumpFunSell(connection, coinData, payerPrivateKey, mintStr, token
         // 创建交易指令数据
         const data = Buffer.concat([
             bufferFromUInt64("12502976635542562355"),  // 指令标识符
-            bufferFromUInt64(tokenBalance),            // 输入的代币数量
+            bufferFromUInt64(tokenAmount),            // 输入的代币数量
             bufferFromUInt64(minSolOutput)             // 最小 SOL 输出
         ]);
 

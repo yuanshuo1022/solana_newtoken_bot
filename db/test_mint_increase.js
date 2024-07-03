@@ -3,7 +3,7 @@ const DB = require('./db');
 //获取铸币时间戳和铸币量 ---测试
 const getMintAndTimestamp = () => {
     return new Promise((resolve, reject) => {
-      const sql = `SELECT mint, created_timestamp FROM pump_newtokens ORDER BY created_timestamp ASC LIMIT 50`;
+      const sql = `SELECT mint, created_timestamp FROM pump_newtokens ORDER BY created_timestamp ASC LIMIT 150`;
   
       DB.pool.query(sql, (err, results) => {
         if (err) {
@@ -22,8 +22,8 @@ const getMintAndTimestamp = () => {
 
   const insertPriceData = (data) => {
     return new Promise((resolve, reject) => {
-      const sql = `INSERT INTO price_data (mint, start_price, end_price, price_change,time_diff) VALUES ?`;
-      const values = data.map(item => [item.mint, item.start_price, item.end_price, item.price_change,item.time_diff]);
+      const sql = `INSERT INTO price_data (mint, start_price, hign_price,end_price, price_change,time_diff) VALUES ?`;
+      const values = data.map(item => [item.mint, item.start_price,item.hign_price,item.end_price, item.price_change,item.time_diff]);
   
       DB.pool.query(sql, [values], (err, results) => {
         if (err) {

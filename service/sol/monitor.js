@@ -191,12 +191,14 @@ async function initMonitor() {
                     new Promise(resolve => setTimeout(resolve, 500));
                     if (infoKline.length > 0) {
                         const startPrice = infoKline[0].close;
+                        const hignPrice=infoKline[0].high;
                         const endPrice = infoKline[infoKline.length - 1].close;
                         const priceChange = ((endPrice - startPrice) / startPrice) * 100;
                         const time_diff = (infoKline[infoKline.length - 1].timestamp - infoKline[0].timestamp) / 60 + 5;
                         priceDataArray.push({
                             mint: mint.mint,
                             start_price: startPrice,
+                            hign_price:hignPrice,
                             end_price: endPrice,
                             price_change: priceChange,
                             time_diff: time_diff
