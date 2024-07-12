@@ -2,13 +2,26 @@
   "name": "sol_newtoken_bot",
   "version": "1.0.0",
   "description": "solana监控新币、交易、监控交易池",
-  "main": "index.js",
+  "main": "app.js",
+  "bin":"app.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "pkg . "
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/yuanshuo1022/solana_newtoken_bot.git"
+  },
+  "pkg": {
+    "assets": [
+      "public/**/*"
+    ],
+    "outputPath": "bin",
+    "targets": [
+      "node18-linux-x64",
+      "node18-macos-x64",
+      "node18-win-x64"
+    ]
   },
   "keywords": [
     "solana",
@@ -34,6 +47,7 @@
     "express": "^4.19.2",
     "mysql": "^2.18.1",
     "path": "^0.12.7",
+    "pkg": "^5.8.1",
     "promise-retry": "^2.0.1",
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.0"
