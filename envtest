@@ -6,7 +6,7 @@ NODE_ENV='development'
 #
 
 #rpc endpoint
-endpoints = [
+ENDPOINT_SOL = [
     'https://api.mainnet-beta.solana.com',
     ];
 #sol最小单位

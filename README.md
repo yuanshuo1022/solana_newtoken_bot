@@ -1,5 +1,13 @@
 # solana_newtoken_bot
- solana监控新币、交易、监控交易池
+ solana监控新币、交易、监控交易池。
+ 
+ 觉得有用的话给个start呗！！！！！！！
+ 
+ 觉得有用的话给个start呗！！！！！！！
+ 
+ 觉得有用的话给个start呗！！！！！！！
+ 
+ 觉得有用的话给个start呗！！！！！！！
 # 项目架构
 ```
 solana_newtoken_bot
