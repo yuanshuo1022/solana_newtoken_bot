@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "solana监控新币、交易、监控交易池",
   "main": "app.js",
-  "bin":"app.js",
+  "bin": "app.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "pkg . "
@@ -43,7 +43,9 @@
     "axios": "^1.7.2",
     "bs58": "^5.0.0",
     "cross-fetch": "^4.0.0",
+    "csv-writer": "^1.6.0",
     "dotenv": "^16.4.5",
+    "ethers": "^6.13.2",
     "express": "^4.19.2",
     "mysql": "^2.18.1",
     "path": "^0.12.7",

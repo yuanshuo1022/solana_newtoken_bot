@@ -2,14 +2,13 @@ const express = require('express');
 const app = express();
 let initializeSolDeal = require("../../service/sol/deal")
 let initMonitor = require("../../service/sol/monitor")
-
  
-
 // 解析 JSON 请求体
 app.use(express.json());
 
 (async () => {
     try {
+  
         const SolDealService = await initializeSolDeal();
         const monitorService = await initMonitor()
         monitorService.monitor_raydium_newpool()
