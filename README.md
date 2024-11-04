@@ -82,3 +82,15 @@ npm  V10.3.0
 启动项目后浏览器打开：
 http://127.0.0.1:18001/docs/
 ```
+
+# 感谢支持
+```
+如果这个项目对您有用，恰好您也有需要，您可以请作者喝杯咖啡表示鼓励。
+```
+
+ ```支付宝捐赠：```
+
+![image](https://github.com/yuanshuo1022/solana_newtoken_bot/blob/main/img/alipay.jpg)
+
+``` 微信捐赠：```
+ ![image](https://github.com/yuanshuo1022/solana_newtoken_bot/blob/main/img/wechat.jpg)
